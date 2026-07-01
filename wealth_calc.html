@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>門客財力計算機</title>
+<style>
+  :root{
+    --bg:#0f1320; --card:#1a2032; --card2:#222a40; --line:#2e3650;
+    --txt:#e8ecf6; --sub:#9aa6c4; --acc:#5b8cff; --acc2:#27c79a;
+    --gold:#ffb454;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+    line-height:1.5;padding:16px;}
+  .wrap{max-width:560px;margin:0 auto;}
+  h1{font-size:20px;margin:8px 0 2px;}
+  .hint{color:var(--sub);font-size:13px;margin:0 0 16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px;margin-bottom:14px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid .full{grid-column:1 / -1;}
+  label{display:block;font-size:13px;color:var(--sub);margin-bottom:6px;}
+  input[type=number]{width:100%;background:var(--card2);border:1px solid var(--line);
+    color:var(--txt);border-radius:10px;padding:11px 12px;font-size:16px;}
+  input:focus{outline:none;border-color:var(--acc);}
+  .btn{width:100%;margin-top:14px;background:var(--acc);color:#fff;border:none;
+    border-radius:11px;padding:13px;font-size:16px;font-weight:600;cursor:pointer;}
+  .btn:active{transform:translateY(1px);}
+  .err{color:#ff6b6b;font-size:13px;margin-top:8px;min-height:1px;}
+  .result{display:none;}
+  .res-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;}
+  .res-head .title{font-size:15px;color:var(--sub);}
+  .hero{text-align:center;margin:10px 0 4px;}
+  .hero .big{font-size:30px;font-weight:800;color:var(--gold);}
+  .hero .unit{font-size:15px;color:var(--sub);margin-left:4px;}
+  .hero .raw{font-size:14px;color:var(--sub);margin-top:4px;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:14px;
+    font-size:14px;border-top:1px solid var(--line);padding-top:14px;}
+  .stats .k{color:var(--sub);}
+  .stats .v{font-weight:600;text-align:right;}
+  .formula{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;
+    font-size:13px;color:var(--sub);}
+  .formula b{color:var(--txt);}
+  details.details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
+  details.details summary{cursor:pointer;color:var(--acc);font-size:14px;}
+  .detail-note{color:var(--sub);font-size:12px;margin:10px 0;}
+  .detail-sum{margin-top:12px;font-size:13px;color:var(--sub);text-align:right;}
+  .detail-sum b{color:var(--gold);}
+  .breakdown{margin-top:10px;font-size:13px;color:var(--sub);}
+  .breakdown b{color:var(--gold);}
+  .unit-row{display:flex;gap:8px;}
+  .unit-row input{flex:1;min-width:0;}
+  .unit-row select{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;padding:0 10px;font-size:15px;cursor:pointer;}
+  .unit-fixed{display:flex;align-items:center;padding:0 12px;color:var(--sub);font-size:15px;}
+  .check-row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;
+    color:var(--txt);cursor:pointer;}
+  .check-row input{width:18px;height:18px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>門客財力計算機</h1>
+  <p class="hint">作者：<a href="https://github.com/Marsgoat" target="_blank" rel="noopener">Marsgoat</a></p>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label>門客等級 (1–500)</label>
+        <input id="level" type="number" min="1" max="500" step="1" inputmode="numeric">
+      </div>
+      <div>
+        <label>總資質</label>
+        <input id="total" type="number" min="0" step="1" inputmode="numeric">
+      </div>
+    </div>
+    <details class="details" id="detailBox">
+      <summary>預估財力：展開填入細項（自動加總）</summary>
+      <p class="detail-note">總資質 ＝ 初始資質 × 門客等級 ＋ 其餘所有加成</p>
+      <div class="grid" id="detailGrid"></div>
+      <div class="detail-sum" id="detailSum"></div>
+    </details>
+    <div class="grid" style="margin-top:14px;">
+      <div class="full">
+        <label>財力總增幅（%）</label>
+        <input id="boost" type="number" min="0" step="any" value="0" inputmode="decimal">
+      </div>
+    </div>
+    <details class="details" id="boostBox">
+      <summary>展開填入細項（自動加總）</summary>
+      <p class="detail-note">總增幅（%）＝ 光環 ＋ 珍獸/靈獸 ＋ 華裳 ＋ 門客外觀</p>
+      <div class="grid" id="boostGrid"></div>
+      <div class="detail-sum" id="boostSum"></div>
+    </details>
+    <details class="details" id="otherBox">
+      <summary>其他財力加成：展開填入細項（自動加總）</summary>
+      <p class="detail-note">可選單位 萬／億；標示（×增幅）者會與資質財力一起乘上增幅，其餘直接相加。</p>
+      <div class="grid" id="otherGrid"></div>
+      <label class="check-row"><input type="checkbox" id="petSkill12">珍獸第一、第二技能（預設滿等，189 萬）</label>
+      <div class="detail-sum" id="otherSum"></div>
+    </details>
+    <button class="btn" id="calcBtn">計算財力</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="res-head">
+      <span class="title">總財力</span>
+      <span class="title" id="coefInfo"></span>
+    </div>
+    <div class="hero">
+      <span class="big" id="manVal"></span><span class="unit">萬</span>
+      <div class="raw" id="rawVal"></div>
+    </div>
+    <div class="stats">
+      <span class="k">門客等級</span><span class="v" id="oLevel"></span>
+      <span class="k">總資質</span><span class="v" id="oTotal"></span>
+      <span class="k">等級係數</span><span class="v" id="oCoef"></span>
+      <span class="k">資質財力（基礎）</span><span class="v" id="oBase"></span>
+      <span class="k">財力總增幅</span><span class="v" id="oBoost"></span>
+      <span class="k">其他財力加成</span><span class="v" id="oOther"></span>
+      <span class="k">總財力（數值）</span><span class="v" id="oRaw"></span>
+    </div>
+    <div class="formula" id="formula"></div>
+    <div class="breakdown" id="breakdown" style="display:none;"></div>
+    <div class="breakdown" id="boostBreakdown" style="display:none;"></div>
+    <div class="breakdown" id="otherBreakdown" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+/* ===== 等級係數資料 (由 財力計算(資料庫).xlsx 匯出，內嵌) ===== */
+const WEALTH = {"meta":{"source":"財力計算(資料庫).xlsx","sheet":"計算財力（資質）","maxLevel":500,"unit":"萬","note":"coef[等級] = 該門客等級下每 1 點資質可加的財力 (單位:萬)。財力(萬)=資質×coef[等級]；實際財力=資質×coef[等級]×10000。"},"coef":[0.002,0.00205,0.00215,0.0023,0.0025,0.00275,0.00305,0.0034,0.0038,0.00425,0.00475,0.0053,0.0059,0.00655,0.00725,0.008,0.0088,0.00965,0.01055,0.0115,0.0125,0.01355,0.01465,0.0158,0.017,0.01825,0.01955,0.0209,0.0223,0.02375,0.02525,0.0268,0.0284,0.03005,0.03175,0.0335,0.0353,0.03715,0.03905,0.041,0.043,0.04505,0.04715,0.0493,0.0515,0.05375,0.05605,0.0584,0.0608,0.06325,0.06575,0.0683,0.0709,0.07355,0.07625,0.079,0.0818,0.08465,0.08755,0.0905,0.0935,0.09655,0.09965,0.1028,0.106,0.10925,0.11255,0.1159,0.1193,0.12275,0.12625,0.1298,0.1334,0.13705,0.14075,0.1445,0.1483,0.15215,0.15605,0.16,0.164,0.16805,0.17215,0.1763,0.1805,0.18475,0.18905,0.1934,0.1978,0.20225,0.20675,0.2113,0.2159,0.22055,0.22525,0.23,0.2348,0.23965,0.24455,0.2495,0.2545,0.25955,0.26465,0.2698,0.275,0.28025,0.28555,0.2909,0.2963,0.30175,0.30725,0.3128,0.3184,0.32405,0.32975,0.3355,0.3413,0.34715,0.35305,0.359,0.365,0.37105,0.37715,0.3833,0.3895,0.39575,0.40205,0.4084,0.4148,0.42125,0.42775,0.4343,0.4409,0.44755,0.45425,0.461,0.4678,0.47465,0.48155,0.4885,0.4955,0.50255,0.50965,0.5168,0.524,0.53125,0.53855,0.5459,0.5533,0.56075,0.56825,0.5758,0.5834,0.59105,0.59875,0.6065,0.6143,0.62215,0.63005,0.638,0.646,0.65405,0.66215,0.6703,0.6785,0.68675,0.69505,0.7034,0.7118,0.72025,0.72875,0.7373,0.7459,0.75455,0.76325,0.772,0.7808,0.78965,0.79855,0.8075,0.8165,0.82555,0.83465,0.8438,0.853,0.86225,0.87155,0.8809,0.8903,0.89975,0.90925,0.9188,0.9284,0.93805,0.94775,0.9575,0.9673,0.97715,0.98705,0.997,1.007,1.01705,1.02715,1.0373,1.0475,1.05775,1.06805,1.0784,1.0888,1.09925,1.10975,1.1203,1.1309,1.14155,1.15225,1.163,1.1738,1.18465,1.19555,1.2065,1.2175,1.22855,1.23965,1.2508,1.262,1.27325,1.28455,1.2959,1.3073,1.31875,1.33025,1.3418,1.3534,1.36505,1.37675,1.3885,1.4003,1.41215,1.42405,1.436,1.448,1.46005,1.47215,1.4843,1.4965,1.50875,1.52105,1.5334,1.5458,1.55825,1.57075,1.5833,1.5959,1.60855,1.62125,1.634,1.6468,1.65965,1.67255,1.6855,1.6985,1.71155,1.72465,1.7378,1.751,1.76425,1.77755,1.7909,1.8043,1.81775,1.83125,1.8448,1.8584,1.87205,1.88575,1.8995,1.9133,1.92715,1.94105,1.955,1.969,1.98305,1.99715,2.0113,2.0255,2.03975,2.05405,2.0684,2.0828,2.09725,2.11175,2.1263,2.1409,2.15555,2.17025,2.185,2.1998,2.21465,2.22955,2.2445,2.2595,2.27455,2.28965,2.3048,2.32,2.33525,2.35055,2.3659,2.3813,2.39675,2.41225,2.4278,2.4434,2.45905,2.47475,2.4905,2.5063,2.52215,2.53805,2.554,2.57,2.58605,2.60215,2.6183,2.6345,2.65075,2.66705,2.6834,2.6998,2.71625,2.73275,2.7493,2.7659,2.78255,2.79925,2.816,2.8328,2.84965,2.86655,2.8835,2.9005,2.91755,2.93465,2.9518,2.969,2.98625,3.00355,3.0209,3.0383,3.05575,3.07325,3.0908,3.1084,3.12605,3.14375,3.1615,3.1793,3.19715,3.21505,3.233,3.251,3.26905,3.28715,3.3053,3.3235,3.34175,3.36005,3.3784,3.3968,3.41525,3.43375,3.4523,3.4709,3.48955,3.50825,3.527,3.5458,3.56465,3.58355,3.6025,3.6215,3.64055,3.65965,3.6788,3.698,3.71725,3.73655,3.7559,3.7753,3.79475,3.81425,3.8338,3.8534,3.87305,3.89275,3.9125,3.9323,3.95215,3.97205,3.992,4.012,4.03205,4.05215,4.0723,4.0925,4.11275,4.13305,4.1534,4.1738,4.19425,4.21475,4.2353,4.2559,4.27655,4.29725,4.318,4.3388,4.35965,4.38055,4.4015,4.4225,4.44355,4.46465,4.4858,4.507,4.52825,4.54955,4.5709,4.5923,4.61375,4.63525,4.6568,4.6784,4.70005,4.72175,4.7435,4.7653,4.78715,4.80905,4.831,4.853,4.87505,4.89715,4.9193,4.9415,4.96375,4.98605,5.0084,5.0308,5.05325,5.07575,5.0983,5.1209,5.14355,5.16625,5.189,5.2118,5.23465,5.25755,5.2805,5.3035,5.32655,5.34965,5.3728,5.396,5.41925,5.44255,5.4659,5.4893,5.51275,5.53625,5.5598,5.5834,5.60705,5.63075,5.6545,5.6783,5.70215,5.72605,5.75,5.774,5.79805,5.82215,5.8463,5.8705,5.89475,5.91905,5.9434,5.9678,5.99225,6.01675,6.0413,6.0659,6.09055,6.11525,6.14,6.1648,6.18965,6.21455,6.2395,6.2645]};
+
+const MAXLV = WEALTH.meta.maxLevel;
+const WAN = 10000;
+
+function coefAt(level){ return WEALTH.coef[level]; }
+const fmt = n => n.toLocaleString('en-US');
+const fmtMan = n => n.toLocaleString('en-US', {maximumFractionDigits:4});
+function fmtCn(raw){
+  if(raw >= 1e8) return (raw/1e8).toLocaleString('en-US',{maximumFractionDigits:4}) + ' 億';
+  if(raw >= 1e4) return (raw/1e4).toLocaleString('en-US',{maximumFractionDigits:4}) + ' 萬';
+  return Math.round(raw).toLocaleString('en-US');
+}
+
+function wealth(level, total){
+  const coef = coefAt(level);
+  const man = total * coef;
+  const raw = man * WAN;
+  return {coef, man, raw};
+}
+
+/* ===== 總資質細項 (展開填入，自動加總) =====
+   總資質 = 初始資質 × 門客等級 ＋ 其餘所有加成。 */
+const DETAILS = [
+  {key:'init',       label:'初始資質', perLevel:true},
+  {key:'pet',        label:'珍獸/靈獸加成'},
+  {key:'appearance', label:'外觀加成'},
+  {key:'backyard',   label:'後院加成'},
+  {key:'dressup',    label:'裝扮加成'},
+  {key:'disguise',   label:'易容加成'},
+  {key:'bhfl',       label:'百繪風華錄加成'},
+  {key:'treasure',   label:'珍寶加成'},
+  {key:'huachang',   label:'華裳加成'},
+  {key:'roster',     label:'聯動名冊加成'},
+  {key:'yaju',       label:'雅居加成'},
+];
+function detailEl(key){ return document.getElementById('d_' + key); }
+function renderDetails(){
+  document.getElementById('detailGrid').innerHTML = DETAILS.map(it =>
+    `<div><label>${it.label}</label>` +
+    `<input id="d_${it.key}" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></div>`
+  ).join('');
+}
+function detailsActive(){
+  return DETAILS.some(it => detailEl(it.key).value.trim() !== '');
+}
+function totalFromDetails(level){
+  let initPart = 0, bonusPart = 0;
+  for(const it of DETAILS){
+    const v = Number(detailEl(it.key).value) || 0;
+    if(it.perLevel) initPart += v * level;
+    else bonusPart += v;
+  }
+  return {sum: initPart + bonusPart, initPart, bonusPart};
+}
+
+/* ===== 財力總增幅細項 (展開填入，自動加總；單位 %) =====
+   總增幅(%) = 光環 ＋ 珍獸/靈獸 ＋ 華裳 ＋ 門客外觀。
+   倍率 = 1 + 總增幅/100 (例：增幅 50% → ×1.5；970% → ×10.7)。
+   總財力 = 資質財力 × 倍率。 */
+const BOOST = [
+  {key:'aura',          label:'光環增幅'},
+  {key:'petamp',        label:'珍獸/靈獸增幅'},
+  {key:'huachangamp',   label:'華裳增幅'},
+  {key:'appearanceamp', label:'門客外觀增幅'},
+];
+function boostEl(key){ return document.getElementById('b_' + key); }
+function renderBoost(){
+  document.getElementById('boostGrid').innerHTML = BOOST.map(it =>
+    `<div><label>${it.label}（%）</label>` +
+    `<input id="b_${it.key}" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></div>`
+  ).join('');
+}
+function boostActive(){
+  return BOOST.some(it => boostEl(it.key).value.trim() !== '');
+}
+function boostFromDetails(){
+  let sum = 0;
+  for(const it of BOOST) sum += Number(boostEl(it.key).value) || 0;
+  return sum;
+}
+
+/* ===== 其他財力加成 (展開填入，自動加總；直接相加的財力，單位可選 萬/億) =====
+   boosted:true 的項目會與資質財力一起 ×增幅倍率；授業加成不受增幅。
+   總財力(數值) = (資質財力 ＋ 受增幅加成) × 倍率 ＋ 不受增幅加成。 */
+const OTHER = [
+  {key:'book',        label:'書籍加成',  boosted:true},
+  {key:'teach',       label:'授業加成',  boosted:false},
+  {key:'yajufin',     label:'雅居加成',  boosted:true},
+  {key:'treasurefin', label:'珍寶加成',  boosted:true},
+  {key:'backyardfin', label:'後院財力加成（萬物滋養）', boosted:true},
+  {key:'petrating',   label:'珍獸評級加成', boosted:true, wanOnly:true},
+];
+const PET_SKILL12_WAN = 189;  // 珍獸第一、第二技能 (滿等) = 189 萬，受增幅
+function renderOther(){
+  document.getElementById('otherGrid').innerHTML = OTHER.map(it => {
+    const unitCtrl = it.wanOnly
+      ? `<span class="unit-fixed">萬</span>`
+      : `<select id="u_${it.key}"><option value="10000">萬</option><option value="100000000">億</option></select>`;
+    return `<div class="full"><label>${it.label}${it.boosted ? '（×增幅）' : ''}</label><div class="unit-row">` +
+      `<input id="o_${it.key}" type="number" min="0" step="any" inputmode="decimal" placeholder="0">` +
+      unitCtrl + `</div></div>`;
+  }).join('');
+}
+function otherHasNegative(){
+  return OTHER.some(it => Number(document.getElementById('o_' + it.key).value) < 0);
+}
+function otherFromDetails(){
+  let boostedSum = 0, flatSum = 0; const parts = [];
+  for(const it of OTHER){
+    const v = Number(document.getElementById('o_' + it.key).value) || 0;
+    const factor = it.wanOnly ? WAN : Number(document.getElementById('u_' + it.key).value);
+    if(v > 0){
+      const amt = v * factor;
+      if(it.boosted) boostedSum += amt; else flatSum += amt;
+      parts.push(`${it.label} ${fmtMan(v)}${factor >= 1e8 ? '億' : '萬'}${it.boosted ? '（×增幅）' : ''}`);
+    }
+  }
+  if(document.getElementById('petSkill12').checked){
+    boostedSum += PET_SKILL12_WAN * WAN;
+    parts.push(`珍獸一二技能 ${PET_SKILL12_WAN}萬（×增幅）`);
+  }
+  return {boostedSum, flatSum, sum: boostedSum + flatSum, parts};
+}
+
+function run(){
+  const errEl = document.getElementById('err'); errEl.textContent = '';
+  const result = document.getElementById('result');
+
+  // 門客等級未填 → 不顯示結果也不報錯 (初始狀態)
+  const levelStr = document.getElementById('level').value.trim();
+  if(levelStr === ''){ result.style.display = 'none'; return; }
+  const level = parseInt(levelStr, 10);
+  if(!(level >= 1 && level <= MAXLV)){ errEl.textContent = `門客等級必須 1~${MAXLV}`; return; }
+
+  // 總資質：有填細項則自動加總並回填「總資質」欄位，否則直接讀該欄位。
+  const totalEl = document.getElementById('total');
+  let bd = null;
+  if(detailsActive()){
+    bd = totalFromDetails(level);
+    totalEl.value = bd.sum;
+  }
+  // 總資質未填 → 不顯示結果也不報錯 (初始狀態)
+  if(totalEl.value.trim() === ''){ result.style.display = 'none'; return; }
+  const total = Math.floor(Number(totalEl.value));
+  if(!(total >= 0)){ errEl.textContent = '總資質必須 ≥ 0'; return; }
+  if(!Number.isSafeInteger(total)){ errEl.textContent = '總資質數值過大（超過安全整數範圍）'; return; }
+
+  // 財力總增幅(%)：有填細項則自動加總並回填，否則直接讀「總增幅」欄位。
+  const boostFieldEl = document.getElementById('boost');
+  let boostBd = null;
+  if(boostActive()){
+    boostBd = boostFromDetails();
+    boostFieldEl.value = boostBd;
+  }
+  const boostPct = Number(boostFieldEl.value) || 0;
+  if(!(boostPct >= 0)){ errEl.textContent = '財力總增幅不能是負數'; return; }
+  const mult = 1 + boostPct / 100;
+
+  const r = wealth(level, total);          // 資質財力 (基礎)
+
+  // 其他財力加成：受增幅者與資質財力一起 ×倍率，不受增幅者最後相加。
+  if(otherHasNegative()){ errEl.textContent = '其他財力加成不能是負數'; return; }
+  const other = otherFromDetails();
+  const raw = (r.raw + other.boostedSum) * mult + other.flatSum;  // 總財力 (數值)
+  const man = raw / WAN;                    // 總財力 (萬)
+
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('coefInfo').textContent = `Lv${level}`;
+  document.getElementById('manVal').textContent = fmtMan(man);
+  document.getElementById('rawVal').textContent = `≈ ${fmtCn(raw)}`;
+  document.getElementById('oLevel').textContent = `Lv${level}`;
+  document.getElementById('oTotal').textContent = fmt(total);
+  document.getElementById('oCoef').textContent = `${fmtMan(r.coef)} 萬／資質`;
+  document.getElementById('oBase').textContent = `${fmtMan(r.man)} 萬`;
+  document.getElementById('oBoost').textContent =
+    `${fmtMan(boostPct)}%　(×${mult.toLocaleString('en-US',{maximumFractionDigits:4})})`;
+  document.getElementById('oOther').textContent =
+    other.sum > 0 ? `${fmt(Math.round(other.sum))}　(≈ ${fmtCn(other.sum)})` : '0';
+  document.getElementById('oRaw').textContent = fmt(Math.round(raw));
+  const multStr = mult.toLocaleString('en-US', {maximumFractionDigits:4});
+  const hasB = other.boostedSum > 0, hasF = other.flatSum > 0;
+  let lhs, rhs;
+  if(hasB){
+    lhs = '(資質財力 ＋ 受增幅加成) × 倍率';
+    rhs = `(<b>${fmtMan(r.man)}</b> 萬 ＋ <b>${fmtCn(other.boostedSum)}</b>) × <b>${multStr}</b>`;
+  } else {
+    lhs = '資質財力 × (1 + 增幅/100)';
+    rhs = `<b>${fmtMan(r.man)}</b> 萬 × <b>${multStr}</b>`;
+  }
+  if(hasF){ lhs += ' ＋ 不受增幅加成'; rhs += ` ＋ <b>${fmtCn(other.flatSum)}</b>`; }
+  document.getElementById('formula').innerHTML = `公式：總財力 = ${lhs} = ${rhs}`;
+
+  // 總資質細項加總明細
+  const bdEl = document.getElementById('breakdown');
+  const sumEl = document.getElementById('detailSum');
+  if(bd){
+    bdEl.style.display = 'block';
+    bdEl.innerHTML =
+      `總資質明細：初始資質×Lv${level} <b>${fmt(bd.initPart)}</b> ＋ 其餘加成 <b>${fmt(bd.bonusPart)}</b> ＝ <b>${fmt(bd.sum)}</b>`;
+    sumEl.innerHTML = `合計總資質 = <b>${fmt(bd.sum)}</b>（已回填上方欄位）`;
+  } else {
+    bdEl.style.display = 'none';
+    sumEl.textContent = '';
+  }
+
+  // 財力總增幅細項加總明細
+  const boostBdEl = document.getElementById('boostBreakdown');
+  const boostSumEl = document.getElementById('boostSum');
+  if(boostBd !== null){
+    boostBdEl.style.display = 'block';
+    boostBdEl.innerHTML =
+      `總增幅明細：光環 ＋ 珍獸/靈獸 ＋ 華裳 ＋ 門客外觀 ＝ <b>${fmtMan(boostBd)}%</b>（財力 ×${mult.toLocaleString('en-US',{maximumFractionDigits:4})}）`;
+    boostSumEl.innerHTML = `合計總增幅 = <b>${fmtMan(boostBd)}%</b>（已回填上方欄位）`;
+  } else {
+    boostBdEl.style.display = 'none';
+    boostSumEl.textContent = '';
+  }
+
+  // 其他財力加成明細
+  const otherBdEl = document.getElementById('otherBreakdown');
+  const otherSumEl = document.getElementById('otherSum');
+  if(other.parts.length){
+    otherBdEl.style.display = 'block';
+    otherBdEl.innerHTML = `其他財力加成：${other.parts.join(' ＋ ')} ＝ <b>${fmtCn(other.sum)}</b>`;
+    otherSumEl.innerHTML = `合計其他財力加成 = <b>${fmtCn(other.sum)}</b>`;
+  } else {
+    otherBdEl.style.display = 'none';
+    otherSumEl.textContent = '';
+  }
+}
+
+renderDetails();
+renderBoost();
+renderOther();
+document.getElementById('calcBtn').addEventListener('click', run);
+document.addEventListener('input', e => { if(e.target.matches('input')) run(); });
+document.addEventListener('change', e => { if(e.target.matches('select, input')) run(); });
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.matches('input')) run(); });
+run(); // 載入時先算一次預設值
+</script>
+</body>
+</html>

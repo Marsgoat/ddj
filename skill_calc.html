@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>珍獸技能計算機</title>
+<style>
+  :root{
+    --bg:#0f1320; --card:#1a2032; --card2:#222a40; --line:#2e3650;
+    --txt:#e8ecf6; --sub:#9aa6c4; --acc:#5b8cff; --acc2:#27c79a;
+    --s3:#ffb454; --s4:#7c5cff; --s5:#27c79a; --s6:#ff6b9d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+    line-height:1.5;padding:16px;}
+  .wrap{max-width:640px;margin:0 auto;}
+  h1{font-size:20px;margin:8px 0 2px;}
+  .hint{color:var(--sub);font-size:13px;margin:0 0 16px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px;margin-bottom:14px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid .full{grid-column:1 / -1;}
+  label{display:block;font-size:13px;color:var(--sub);margin-bottom:6px;}
+  input[type=number]{width:100%;background:var(--card2);border:1px solid var(--line);
+    color:var(--txt);border-radius:10px;padding:11px 12px;font-size:16px;}
+  input:focus{outline:none;border-color:var(--acc);}
+  .subhead{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);
+    font-size:13px;color:var(--sub);font-weight:600;margin-bottom:10px;}
+  .row{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;color:var(--sub);}
+  .btn{width:100%;margin-top:14px;background:var(--acc);color:#fff;border:none;
+    border-radius:11px;padding:13px;font-size:16px;font-weight:600;cursor:pointer;}
+  .btn:active{transform:translateY(1px);}
+  .err{color:#ff6b6b;font-size:13px;margin-top:8px;min-height:1px;}
+  .result{display:none;}
+  .res-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;}
+  .res-head .title{font-size:15px;color:var(--sub);}
+  .skillrec{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 4px;}
+  .pill{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;}
+  .pill .name{font-size:13px;font-weight:600;}
+  .pill.s3 .name{color:var(--s3);} .pill.s4 .name{color:var(--s4);}
+  .pill.s5 .name{color:var(--s5);} .pill.s6 .name{color:var(--s6);}
+  .pill .lv{font-size:22px;font-weight:700;margin-top:2px;}
+  .pill .delta{font-size:13px;color:var(--acc2);margin-top:2px;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-top:12px;
+    font-size:14px;}
+  .stats .k{color:var(--sub);}
+  .stats .v{font-weight:600;text-align:right;}
+  .benefit{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;font-size:14px;}
+  .benefit .line{display:flex;justify-content:space-between;margin:4px 0;}
+  .benefit b{color:var(--acc2);}
+  .tag3{color:var(--s3);} .tag4{color:var(--s4);} .tag5{color:var(--s5);}
+  .foot{color:var(--sub);font-size:12px;text-align:center;margin-top:10px;}
+  details.ctable summary{cursor:pointer;font-size:14px;font-weight:600;
+    list-style:none;padding:2px 0;user-select:none;}
+  details.ctable summary::-webkit-details-marker{display:none;}
+  details.ctable summary::before{content:"▸ ";}
+  details.ctable[open] summary::before{content:"▾ ";}
+  details.ctable .tbl-hint{color:var(--sub);font-size:12px;margin:8px 0 4px;}
+  details.ctable table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;}
+  details.ctable th,details.ctable td{padding:6px 8px;text-align:right;
+    border-bottom:1px solid var(--line);}
+  details.ctable th:first-child,details.ctable td:first-child{text-align:left;color:var(--sub);}
+  details.ctable thead th{color:var(--sub);font-weight:600;}
+  details.herb-table summary,details.herb-table td b{color:var(--s6);}
+  .ref-note{color:var(--sub);font-size:12px;margin-top:8px;}
+  .ref-note b{color:var(--acc);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>珍獸技能計算機</h1>
+  <p class="hint">作者：<a href="https://github.com/Marsgoat" target="_blank" rel="noopener">Marsgoat</a></p>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label>目前三技能等級 (1–200)</label>
+        <input id="l3" type="number" min="1" max="200" step="1" value="1" inputmode="numeric">
+      </div>
+      <div>
+        <label>目前四技能等級 (1–200)</label>
+        <input id="l4" type="number" min="1" max="200" step="1" value="1" inputmode="numeric">
+      </div>
+      <div>
+        <label>目前五技能等級 (0–200)</label>
+        <input id="l5" type="number" min="0" max="200" step="1" value="0" inputmode="numeric">
+      </div>
+      <div>
+        <label>目前六技能等級 (0–200)</label>
+        <input id="l6" type="number" min="0" max="200" step="1" value="0" inputmode="numeric">
+      </div>
+      <div class="full">
+        <label>目前可用經驗 (三/四/五技能共用)</label>
+        <input id="exp" type="number" min="0" step="1" value="1000000" inputmode="numeric">
+      </div>
+      <div class="full">
+        <label>目前擁有靈草 (第六技能材料，單位：億)</label>
+        <input id="herb" type="number" min="0" step="any" value="0" placeholder="例如 4000 代表 4000億" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="subhead">珍獸互動經驗換算（選填）</div>
+    <div class="grid">
+      <div class="full">
+        <label>單次互動經驗（留空則不計算）</label>
+        <input id="interactExp" type="number" min="0" step="any" inputmode="decimal">
+        <div class="ref-note">參考：每 <b>1萬</b> 潛力，單次互動約 <b>0.37萬</b> 經驗（例：20萬潛力 ≈ 7.4萬）。</div>
+      </div>
+      <div>
+        <label>VIP 等級</label>
+        <input id="vip" type="number" min="1" step="1" inputmode="numeric">
+      </div>
+      <div>
+        <label>珍獸數量</label>
+        <input id="petCount" type="number" min="1" step="1" inputmode="numeric">
+      </div>
+      <div class="full">
+        <label>使用精力丹數量</label>
+        <input id="pillsUsed" type="number" min="0" step="1" inputmode="numeric">
+      </div>
+    </div>
+    <div class="row">
+      <input id="addPetExp" type="checkbox">
+      <label for="addPetExp" style="margin:0;cursor:pointer;">把算出的經驗加入「可用經驗」一起算技能分配</label>
+    </div>
+
+    <button class="btn" id="calcBtn">計算最佳分配</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="res-head">
+      <span class="title">建議分配</span>
+      <span class="title" id="usedInfo"></span>
+    </div>
+    <div class="skillrec">
+      <div class="pill s3">
+        <div class="name">第三技能</div>
+        <div class="lv" id="r3"></div>
+        <div class="delta" id="d3"></div>
+      </div>
+      <div class="pill s4">
+        <div class="name">第四技能</div>
+        <div class="lv" id="r4"></div>
+        <div class="delta" id="d4"></div>
+      </div>
+      <div class="pill s5">
+        <div class="name">第五技能</div>
+        <div class="lv" id="r5"></div>
+        <div class="delta" id="d5"></div>
+      </div>
+    </div>
+    <div class="stats">
+      <span class="k">花費經驗</span><span class="v" id="spent"></span>
+      <span class="k">剩餘經驗</span><span class="v" id="left"></span>
+    </div>
+    <div class="benefit">
+      <div class="line"><span>三技能加成</span><span id="ben3"></span></div>
+      <div class="line"><span>四技能加成</span><span id="ben4"></span></div>
+      <div class="line"><span>五技能加成</span><span id="ben5"></span></div>
+      <div class="line" style="border-top:1px solid var(--line);padding-top:6px;margin-top:6px;">
+        <span>合計加成 (三+四+五)</span><span id="add"></span></div>
+    </div>
+    <div class="benefit">
+      <div style="font-size:13px;color:var(--sub);margin-bottom:6px;">距離點滿 (Lv200) 還需要</div>
+      <div class="line"><span class="tag3">三技能</span><span id="need3"></span></div>
+      <div class="line"><span class="tag4">四技能</span><span id="need4"></span></div>
+      <div class="line" style="border-top:1px solid var(--line);padding-top:6px;margin-top:6px;">
+        <span>合計 (三+四)</span><span id="needTotal"></span></div>
+      <div class="line" id="shortLine"></div>
+      <div class="line"><span class="tag5">五技能 (額外)</span><span id="need5"></span></div>
+    </div>
+    <div class="benefit" id="petBox" style="display:none;">
+      <div style="font-size:13px;color:var(--sub);margin-bottom:6px;" id="petHead">珍獸互動經驗換算</div>
+      <div class="line"><span>VIP 加成</span><span id="petBonus"></span></div>
+      <div class="line"><span>總互動次數</span><span id="petTotal"></span></div>
+      <div class="line"><span>平均每隻珍獸互動</span><span id="petAvg"></span></div>
+      <div class="line"><span>目標珍獸經驗</span><span id="petExp"></span></div>
+      <div class="line" id="petAddLine"></div>
+    </div>
+    <div class="benefit" id="pillBox" style="display:none;">
+      <div style="font-size:13px;color:var(--sub);margin-bottom:6px;" id="pillHead">精力丹換算</div>
+      <div class="line"><span>每顆精力丹給本珍獸經驗</span><span id="pillPer"></span></div>
+      <div class="line" id="pillNeedLine"></div>
+    </div>
+    <div class="benefit" id="skill6Box">
+      <div style="font-size:14px;color:var(--s6);font-weight:600;margin-bottom:6px;">第六技能（獨立資源池：靈草）</div>
+      <div class="line"><span>能升等級</span><span id="r6"></span></div>
+      <div class="line"><span>花費靈草</span><span id="spent6"></span></div>
+      <div class="line"><span>剩餘靈草</span><span id="left6"></span></div>
+      <div class="line"><span>六技能加成</span><span id="ben6"></span></div>
+      <div class="line"><span>距離點滿 (Lv200) 還需靈草</span><span id="need6"></span></div>
+      <div class="line" id="short6Line"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="ctable herb-table">
+      <summary>第六技能｜靈草需求表（每 10 級累計）</summary>
+      <div class="tbl-hint">「本段」＝該 10 級所需靈草；「累計」＝從 Lv1 升到該等級的總靈草。</div>
+      <table>
+        <thead><tr><th>升到</th><th>本段需要</th><th>累計需要</th></tr></thead>
+        <tbody id="herbTableBody"></tbody>
+      </table>
+    </details>
+  </div>
+
+</div>
+
+<script>
+/* ===== 經驗資料 (由 xlsx 匯出，內嵌) ===== */
+const SKILL_DATA = {"meta":{"source":"third_fourth_skill_cp_integrated.xlsx","maxLevel":200,"note":"costs[i] = 升級所需資源 from level (i+1) to (i+2). skill3/skill4/skill5 共用同一經驗池（skill5 需 skill3、skill4 皆滿200級才能升）；skill6 為獨立資源池，與三四五技能經驗不共用。"},"skill3":{"name":"第三技能","benefitPerLevel":0.01,"costs":[540,780,1060,1400,1800,2250,2770,3360,4010,4730,5520,6390,7330,8350,9450,10600,11900,13200,14700,16200,17800,19500,21300,23200,25200,27300,29500,31700,34100,36600,39200,41800,44600,47100,48800,50100,53700,57400,61300,65300,69500,73900,78400,83100,88000,93000,98200,104000,109000,115000,121000,127000,133000,140000,147000,154000,161000,168000,175000,183000,191000,198900,208000,216000,225000,234000,243000,252000,262000,272000,282000,292000,303000,314000,325000,336000,347000,359000,371000,382900,396000,407900,421000,435000,448000,462000,476000,490000,504000,519000,534000,549000,565000,574000,584000,594000,603000,613000,623000,633000,707000,740000,773000,808000,844000,881000,919000,959000,999000,1041000,1085000,1129000,1175000,1222000,1271000,1321000,1373000,1426000,1481000,1537000,1595000,1655000,1716000,1779000,1844000,1910000,1978000,2049000,2121000,2195000,2254000,2370000,2490000,2614000,2742000,2874000,3011000,3153000,3299000,3450000,3606000,3767000,3933000,4104000,4281000,4463000,4652000,4845000,5045000,5251000,5463000,5682000,5907000,6138000,6377000,6622000,6875000,7135000,7402000,7677000,7960000,8251000,8550000,8858000,9174000,9498000,9832000,10170000,10520000,10880000,11250000,11640000,12030000,12430000,12840000,13260000,13700000,14140000,14600000,15070000,15550000,16040000,16550000,17060000,17590000,18140000,18690000,19270000,19850000,20450000,21060000,21690000,22340000,23000000,23670000,24360000,25070000,25800000,26540000]},"skill4":{"name":"第四技能","benefitPerLevel":0.0105,"costs":[820,1170,1590,2100,2690,3380,4160,5030,6010,7090,8280,9580,11000,12500,14200,15900,17800,19900,22000,24300,26700,29300,32000,34800,37800,40900,44200,47600,51200,54900,58700,62800,67000,70600,73200,75200,80500,86100,91900,98000,104000,111000,118000,125000,132000,140000,147000,155000,163900,172000,181000,191000,200000,210000,220000,230000,241000,252000,263000,275000,287000,299000,311000,324000,337000,351000,365000,379000,392900,407900,423000,439000,454000,471000,487000,504000,521000,539000,557000,575000,594000,613000,632000,652000,672000,693000,713000,735000,755900,778000,800900,824000,847000,861000,876000,890000,905000,920000,935000,949000,1060000,1109000,1160000,1212000,1266000,1321000,1379000,1438000,1499000,1562000,1627000,1694000,1763000,1834000,1907000,1982000,2059000,2139000,2221000,2306000,2393000,2482000,2574000,2668000,2765000,2865000,2968000,3073000,3181000,3292000,3381000,3555000,3734000,3920000,4113000,4311000,4517000,4729000,4948000,5175000,5409000,5650000,5899000,6157000,6422000,6695000,6977000,7268000,7568000,7877000,8195000,8522000,8860000,9207000,9565000,9933000,10310000,10700000,11100000,11510000,11940000,12370000,12820000,13280000,13760000,14240000,14740000,15260000,15790000,16330000,16880000,17460000,18040000,18640000,19260000,19900000,20550000,21220000,21900000,22600000,23320000,24060000,24820000,25600000,26390000,27210000,28040000,28900000,29780000,30680000,31600000,32540000,33510000,34500000,35510000,36550000,37610000,38700000,39810000]},"skill5":{"name":"第五技能","benefitPerLevel":0.006,"pool":"shared","sharesWith":["skill3","skill4"],"requires":{"skill3":200,"skill4":200},"note":"第五技能；與三、四技能共用同一經驗池（單位:原始經驗值）。需技能3、技能4 皆升滿200級後才能升級。lv1→2=4000萬，每級+100萬，至lv199→200=23800萬(2.38億)。每級+0.6%加成。","costs":[40000000,41000000,42000000,43000000,44000000,45000000,46000000,47000000,48000000,49000000,50000000,51000000,52000000,53000000,54000000,55000000,56000000,57000000,58000000,59000000,60000000,61000000,62000000,63000000,64000000,65000000,66000000,67000000,68000000,69000000,70000000,71000000,72000000,73000000,74000000,75000000,76000000,77000000,78000000,79000000,80000000,81000000,82000000,83000000,84000000,85000000,86000000,87000000,88000000,89000000,90000000,91000000,92000000,93000000,94000000,95000000,96000000,97000000,98000000,99000000,100000000,101000000,102000000,103000000,104000000,105000000,106000000,107000000,108000000,109000000,110000000,111000000,112000000,113000000,114000000,115000000,116000000,117000000,118000000,119000000,120000000,121000000,122000000,123000000,124000000,125000000,126000000,127000000,128000000,129000000,130000000,131000000,132000000,133000000,134000000,135000000,136000000,137000000,138000000,139000000,140000000,141000000,142000000,143000000,144000000,145000000,146000000,147000000,148000000,149000000,150000000,151000000,152000000,153000000,154000000,155000000,156000000,157000000,158000000,159000000,160000000,161000000,162000000,163000000,164000000,165000000,166000000,167000000,168000000,169000000,170000000,171000000,172000000,173000000,174000000,175000000,176000000,177000000,178000000,179000000,180000000,181000000,182000000,183000000,184000000,185000000,186000000,187000000,188000000,189000000,190000000,191000000,192000000,193000000,194000000,195000000,196000000,197000000,198000000,199000000,200000000,201000000,202000000,203000000,204000000,205000000,206000000,207000000,208000000,209000000,210000000,211000000,212000000,213000000,214000000,215000000,216000000,217000000,218000000,219000000,220000000,221000000,222000000,223000000,224000000,225000000,226000000,227000000,228000000,229000000,230000000,231000000,232000000,233000000,234000000,235000000,236000000,237000000,238000000]},"skill6":{"name":"第六技能","benefitPerLevel":0.006,"pool":"independent","note":"第六技能升級所需資源；獨立資源池，與三四技能經驗不共用。單位為原始數值，1億=100000000。公式: lv1→2=1億，每級+0.15億至lv13→14(=2.8億)；lv14→15起每級+0.2億(=0.2×N+0.2億, N=起始等級)，至lv199→200=40億。","costs":[100000000,115000000,130000000,145000000,160000000,175000000,190000000,205000000,220000000,235000000,250000000,265000000,280000000,300000000,320000000,340000000,360000000,380000000,400000000,420000000,440000000,460000000,480000000,500000000,520000000,540000000,560000000,580000000,600000000,620000000,640000000,660000000,680000000,700000000,720000000,740000000,760000000,780000000,800000000,820000000,840000000,860000000,880000000,900000000,920000000,940000000,960000000,980000000,1000000000,1020000000,1040000000,1060000000,1080000000,1100000000,1120000000,1140000000,1160000000,1180000000,1200000000,1220000000,1240000000,1260000000,1280000000,1300000000,1320000000,1340000000,1360000000,1380000000,1400000000,1420000000,1440000000,1460000000,1480000000,1500000000,1520000000,1540000000,1560000000,1580000000,1600000000,1620000000,1640000000,1660000000,1680000000,1700000000,1720000000,1740000000,1760000000,1780000000,1800000000,1820000000,1840000000,1860000000,1880000000,1900000000,1920000000,1940000000,1960000000,1980000000,2000000000,2020000000,2040000000,2060000000,2080000000,2100000000,2120000000,2140000000,2160000000,2180000000,2200000000,2220000000,2240000000,2260000000,2280000000,2300000000,2320000000,2340000000,2360000000,2380000000,2400000000,2420000000,2440000000,2460000000,2480000000,2500000000,2520000000,2540000000,2560000000,2580000000,2600000000,2620000000,2640000000,2660000000,2680000000,2700000000,2720000000,2740000000,2760000000,2780000000,2800000000,2820000000,2840000000,2860000000,2880000000,2900000000,2920000000,2940000000,2960000000,2980000000,3000000000,3020000000,3040000000,3060000000,3080000000,3100000000,3120000000,3140000000,3160000000,3180000000,3200000000,3220000000,3240000000,3260000000,3280000000,3300000000,3320000000,3340000000,3360000000,3380000000,3400000000,3420000000,3440000000,3460000000,3480000000,3500000000,3520000000,3540000000,3560000000,3580000000,3600000000,3620000000,3640000000,3660000000,3680000000,3700000000,3720000000,3740000000,3760000000,3780000000,3800000000,3820000000,3840000000,3860000000,3880000000,3900000000,3920000000,3940000000,3960000000,3980000000,4000000000]}};
+
+const MAXLV = SKILL_DATA.meta.maxLevel;
+
+function prefixCosts(costs, start){
+  // pre[k] = 從 start 升 k 級的累積 EXP；costs[i]=等級(i+1)→(i+2)；Lv0→Lv1 視為免費(成本0)
+  const pre=[0];
+  for(let lvl=start; lvl<MAXLV; lvl++) pre.push(pre[pre.length-1]+(lvl<1?0:costs[lvl-1]));
+  return pre;
+}
+function maxLevelsWithin(pre, budget){
+  let lo=0, hi=pre.length-1, best=0;
+  while(lo<=hi){const mid=(lo+hi)>>1; if(pre[mid]<=budget){best=mid;lo=mid+1;}else hi=mid-1;}
+  return best;
+}
+function optimize(l3, l4, l5, budget){
+  const b3=SKILL_DATA.skill3.benefitPerLevel, b4=SKILL_DATA.skill4.benefitPerLevel, b5=SKILL_DATA.skill5.benefitPerLevel;
+  const pre3=prefixCosts(SKILL_DATA.skill3.costs, l3);
+  const pre4=prefixCosts(SKILL_DATA.skill4.costs, l4);
+  let best=null; // {benefit, spent, a, b}
+  for(let a=0; a<pre3.length; a++){
+    if(pre3[a]>budget) break;
+    const b=maxLevelsWithin(pre4, budget-pre3[a]);
+    const spent=pre3[a]+pre4[b];
+    const benefit=b3*a + b4*b;
+    if(best===null || benefit>best.benefit+1e-12 ||
+       (Math.abs(benefit-best.benefit)<1e-12 && spent<best.spent)){
+      best={benefit, spent, a, b};
+    }
+  }
+  const spent34=best.spent;
+  best.newL3=l3+best.a; best.newL4=l4+best.b;
+  // 技能5：需三、四都滿 MAXLV 才解鎖（未解鎖加成為0）；新解鎖自動 Lv1，再灌入剩餘經驗
+  best.skill5Unlocked = (best.newL3===MAXLV && best.newL4===MAXLV);
+  best.currentlyUnlocked = (l3===MAXLV && l4===MAXLV);
+  let c=0, spent5=0, baseL5=0, newL5=0;
+  if(best.skill5Unlocked){
+    baseL5 = best.currentlyUnlocked ? l5 : 1; // 新解鎖自動給 Lv1
+    const pre5=prefixCosts(SKILL_DATA.skill5.costs, baseL5);
+    c=maxLevelsWithin(pre5, budget-spent34);
+    spent5=pre5[c];
+    newL5=baseL5+c;
+  }
+  best.c=c; best.baseL5=baseL5; best.newL5=newL5;
+  best.spent=spent34+spent5;
+  best.benefit=best.benefit + b5*c;
+  return best;
+}
+function benefits(l3,l4,l5){
+  // 收益完全為加法：三 Lv200=200%、四 Lv200=210%、五 Lv200=120% (0.006*200)
+  // 技能5 需三、四技能皆滿級才有加成；未滿級時加成一律為 0。
+  const b3=SKILL_DATA.skill3.benefitPerLevel, b4=SKILL_DATA.skill4.benefitPerLevel, b5=SKILL_DATA.skill5.benefitPerLevel;
+  const s3=b3*l3, s4=b4*l4, s5=(l3===MAXLV && l4===MAXLV)?b5*l5:0;
+  return {s3, s4, s5, tot:s3+s4+s5};
+}
+function skill6Plan(l6, herb){
+  // 第六技能：獨立資源池(靈草)，單一技能算可升幾級
+  const b6=SKILL_DATA.skill6.benefitPerLevel;
+  const pre6=prefixCosts(SKILL_DATA.skill6.costs, l6);
+  const levels=maxLevelsWithin(pre6, herb);
+  const spent=pre6[levels];
+  const needToMax=remainingToMax(SKILL_DATA.skill6.costs, l6);
+  return {levels, newL6:l6+levels, spent, remaining:herb-spent, gained:b6*levels, needToMax, short:needToMax-herb};
+}
+function remainingToMax(costs, level){
+  // 從 level 升到 Lv200 還需要的總經驗；costs[i]=等級(i+1)→(i+2)；Lv0→Lv1 視為免費
+  let s=0; for(let i=Math.max(level-1,0);i<costs.length;i++) s+=costs[i]; return s;
+}
+const fmt=n=>n.toLocaleString('en-US');
+const fmtYi=n=>(n/1e8).toLocaleString('en-US',{maximumFractionDigits:2})+'億'; // 靈草以億顯示 (1億=1e8)
+const pct=x=>(x*100).toFixed(2)+'%';
+/* ===== 珍獸互動經驗換算 ===== */
+const VIP_BONUS_OFFSET=3, VIP_BONUS_CAP=15; // 加成=min(VIP+3,15)；vip12 以上封頂15
+function vipBonus(vip){ return Math.min(vip+VIP_BONUS_OFFSET, VIP_BONUS_CAP); }
+function petInteractPlan(interactExp, vip, petCount, pillsUsed){
+  // 總互動次數=加成×精力丹；平均每隻=總/珍獸數；平均每隻經驗=平均互動×單次互動經驗
+  const bonus=vipBonus(vip);
+  const totalInteracts=bonus*pillsUsed;
+  const avgInteracts=totalInteracts/petCount;
+  const expGained=avgInteracts*interactExp;
+  return {bonus, totalInteracts, avgInteracts, expGained};
+}
+
+function run(){
+  const errEl=document.getElementById('err'); errEl.textContent='';
+  const l3=parseInt(document.getElementById('l3').value,10);
+  const l4=parseInt(document.getElementById('l4').value,10);
+  const l5=parseInt(document.getElementById('l5').value,10);
+  const l6=parseInt(document.getElementById('l6').value,10);
+  const budget=Math.floor(Number(document.getElementById('exp').value));
+  const herbYi=Number(document.getElementById('herb').value);   // 輸入單位：億
+  const herb=Math.round(herbYi*1e8);                            // 轉成原始數值給計算用
+  if(!(l3>=1&&l3<=MAXLV)){errEl.textContent=`三技能等級必須 1~${MAXLV}`;return;}
+  if(!(l4>=1&&l4<=MAXLV)){errEl.textContent=`四技能等級必須 1~${MAXLV}`;return;}
+  if(!(l5>=0&&l5<=MAXLV)){errEl.textContent=`五技能等級必須 0~${MAXLV}`;return;}
+  if(!(l6>=0&&l6<=MAXLV)){errEl.textContent=`六技能等級必須 0~${MAXLV}`;return;}
+  if(!(budget>=0)){errEl.textContent='經驗必須 ≥ 0';return;}
+  if(!(herb>=0)){errEl.textContent='靈草必須 ≥ 0';return;}
+
+  // 珍獸互動經驗換算 (選填)；可選擇把算出的經驗加進可用經驗一起算
+  const interactRaw=document.getElementById('interactExp').value.trim();
+  const addPetExp=document.getElementById('addPetExp').checked;
+  let pet=null;
+  if(interactRaw!==''){
+    const interactExp=Number(interactRaw);
+    const vip=parseInt(document.getElementById('vip').value,10);
+    const petCount=parseInt(document.getElementById('petCount').value,10);
+    const pillsUsed=Math.floor(Number(document.getElementById('pillsUsed').value));
+    if(!(interactExp>=0)){errEl.textContent='單次互動經驗必須 ≥ 0';return;}
+    if(!(vip>=1)){errEl.textContent='VIP 等級必須 ≥ 1';return;}
+    if(!(petCount>=1)){errEl.textContent='珍獸數量必須 ≥ 1';return;}
+    if(!(pillsUsed>=0)){errEl.textContent='精力丹數量必須 ≥ 0';return;}
+    pet=petInteractPlan(interactExp, vip, petCount, pillsUsed);
+    pet.vip=vip; pet.petCount=petCount; pet.pillsUsed=pillsUsed; pet.interactExp=interactExp;
+  }
+  const petExpAdd=(pet && addPetExp) ? Math.round(pet.expGained) : 0;
+  const effectiveBudget=budget + petExpAdd;
+
+  const r=optimize(l3,l4,l5,effectiveBudget);
+  const cur=benefits(l3,l4,l5), nw=benefits(r.newL3, r.newL4, r.newL5);
+
+  document.getElementById('result').style.display='block';
+  document.getElementById('usedInfo').textContent=
+    `可用 ${fmt(effectiveBudget)} EXP`;
+  document.getElementById('r3').textContent=`Lv${l3} → Lv${r.newL3}`;
+  document.getElementById('r4').textContent=`Lv${l4} → Lv${r.newL4}`;
+  document.getElementById('d3').textContent=r.a>0?`升 ${r.a} 級`:'維持';
+  document.getElementById('d4').textContent=r.b>0?`升 ${r.b} 級`:'維持';
+  const curL5disp=r.currentlyUnlocked?l5:0;
+  document.getElementById('r5').textContent=r.skill5Unlocked?`Lv${curL5disp} → Lv${r.newL5}`:'加成 0%';
+  document.getElementById('d5').textContent=r.skill5Unlocked?(r.c>0?`花經驗升 ${r.c} 級`:(r.currentlyUnlocked?'維持':'自動解鎖 Lv1')):'需先點滿三、四技能';
+  document.getElementById('spent').textContent=fmt(r.spent);
+  document.getElementById('left').textContent=fmt(effectiveBudget-r.spent);
+  document.getElementById('ben3').innerHTML=`${pct(cur.s3)} → <b>${pct(nw.s3)}</b>`;
+  document.getElementById('ben4').innerHTML=`${pct(cur.s4)} → <b>${pct(nw.s4)}</b>`;
+  document.getElementById('ben5').innerHTML=`${pct(cur.s5)} → <b>${pct(nw.s5)}</b>`;
+  document.getElementById('add').innerHTML=
+    `${pct(cur.tot)} → <b>${pct(nw.tot)}</b> &nbsp;(+${pct(nw.tot-cur.tot)})`;
+
+  // 距離點滿 (Lv200)
+  const need3=remainingToMax(SKILL_DATA.skill3.costs, l3);
+  const need4=remainingToMax(SKILL_DATA.skill4.costs, l4);
+  const effL5=r.currentlyUnlocked?l5:1;
+  const need5=remainingToMax(SKILL_DATA.skill5.costs, effL5);
+  const need34=need3+need4, totalNeed=need34+need5;
+  const short=need34-effectiveBudget;        // 還缺：只計三+四 (不含五技能)
+  const shortAll=totalNeed-effectiveBudget;  // 含五技能 (精力丹點滿換算用)
+  document.getElementById('need3').innerHTML=`Lv${l3}→Lv${MAXLV}　<b>${fmt(need3)}</b>`;
+  document.getElementById('need4').innerHTML=`Lv${l4}→Lv${MAXLV}　<b>${fmt(need4)}</b>`;
+  document.getElementById('need5').innerHTML=`Lv${curL5disp}→Lv${MAXLV}　<b>${fmt(need5)}</b>`;
+  document.getElementById('needTotal').innerHTML=`<b>${fmt(need34)}</b> EXP`;
+  document.getElementById('shortLine').innerHTML = short>0
+    ? `<span style="color:var(--sub)">扣掉目前經驗後還缺</span><span><b>${fmt(short)}</b> EXP</span>`
+    : `<span style="color:var(--sub)">目前經驗</span><span style="color:var(--acc2)">已足夠把三、四點滿 ✓</span>`;
+
+  // 第六技能 (獨立資源池：靈草)
+  const s6=skill6Plan(l6, herb);
+  const b6=SKILL_DATA.skill6.benefitPerLevel;
+  document.getElementById('r6').innerHTML = s6.levels>0
+    ? `Lv${l6} → <b>Lv${s6.newL6}</b>　(能升 ${s6.levels} 級)`
+    : `Lv${l6}　(靈草不足升一級)`;
+  document.getElementById('spent6').innerHTML=`<b>${fmtYi(s6.spent)}</b>`;
+  document.getElementById('left6').innerHTML=`<b>${fmtYi(s6.remaining)}</b>`;
+  document.getElementById('ben6').innerHTML=`${pct(b6*l6)} → <b>${pct(b6*s6.newL6)}</b>`;
+  document.getElementById('need6').innerHTML=`<b>${fmtYi(s6.needToMax)}</b>`;
+  document.getElementById('short6Line').innerHTML = s6.short>0
+    ? `<span style="color:var(--sub)">扣掉現有靈草後還缺</span><span><b>${fmtYi(s6.short)}</b></span>`
+    : `<span style="color:var(--sub)">現有靈草</span><span style="color:var(--acc2)">已足夠點滿六技能 ✓</span>`;
+
+  // 珍獸互動經驗換算
+  const petBox=document.getElementById('petBox');
+  if(pet){
+    petBox.style.display='block';
+    document.getElementById('petHead').textContent=
+      `珍獸互動經驗換算（VIP${pet.vip}・珍獸${fmt(pet.petCount)}・精力丹${fmt(pet.pillsUsed)}）`;
+    document.getElementById('petBonus').innerHTML=`×<b>${pet.bonus}</b>`;
+    document.getElementById('petTotal').innerHTML=`<b>${fmt(pet.totalInteracts)}</b> 次`;
+    document.getElementById('petAvg').innerHTML=
+      `<b>${pet.avgInteracts.toLocaleString('en-US',{maximumFractionDigits:2})}</b> 次/隻`;
+    document.getElementById('petExp').innerHTML=
+      `約 <b>${pet.expGained.toLocaleString('en-US',{maximumFractionDigits:2})}</b>`;
+    document.getElementById('petAddLine').innerHTML = addPetExp
+      ? `<span style="color:var(--sub)">已加入可用經驗</span>`+
+        `<span style="color:var(--acc2)">合計可用 <b>${fmt(effectiveBudget)}</b> EXP</span>`
+      : `<span style="color:var(--sub)">未加入可用經驗</span><span>僅顯示</span>`;
+  } else {
+    petBox.style.display='none';
+  }
+
+  // 精力丹點滿換算：依單次互動經驗，算還需幾顆精力丹才能升滿三+四+五技能
+  const pillBox=document.getElementById('pillBox');
+  const perPill = pet ? (pet.bonus/pet.petCount)*pet.interactExp : 0;  // 每顆精力丹給本珍獸的經驗
+  if(pet && perPill>0){
+    pillBox.style.display='block';
+    document.getElementById('pillHead').textContent=
+      `精力丹點滿換算（VIP${pet.vip}加成×${pet.bonus}・珍獸${fmt(pet.petCount)}・單次互動${fmt(pet.interactExp)}）`;
+    document.getElementById('pillPer').innerHTML=
+      `約 <b>${perPill.toLocaleString('en-US',{maximumFractionDigits:1})}</b>`;
+    if(shortAll>0){
+      const pills=Math.ceil(shortAll/perPill), batches=Math.ceil(pills/999);
+      document.getElementById('pillNeedLine').innerHTML=
+        `<span style="color:var(--sub)">升滿三+四+五技能還需</span>`+
+        `<span>約 <b>${fmt(pills)}</b> 顆 (約 ${fmt(batches)} 批 × 999)</span>`;
+    } else {
+      document.getElementById('pillNeedLine').innerHTML=
+        `<span style="color:var(--sub)">目前經驗</span>`+
+        `<span style="color:var(--acc2)">已足夠點滿，不需要精力丹 ✓</span>`;
+    }
+  } else {
+    pillBox.style.display='none';
+  }
+  if(r.a===0 && r.b===0 && r.c===0){
+    errEl.textContent='經驗不足以升任何一級。';
+  }
+}
+
+// 靈草需求表：每 10 級的「本段」與「累計」(第六技能，1億=1e8)；costs[i]=Lv(i+1)→(i+2)
+(function buildHerbTable(){
+  const body=document.getElementById('herbTableBody');
+  if(!body) return;
+  const costs=SKILL_DATA.skill6.costs;
+  let rows='', cum=0, prevCum=0;
+  for(let lv=2; lv<=MAXLV; lv++){
+    cum+=costs[lv-2];                 // 升到 lv 級的累計靈草 (從 Lv1 起算)
+    if(lv%10===0){
+      rows+=`<tr><td>Lv${lv}</td><td>${fmtYi(cum-prevCum)}</td><td><b>${fmtYi(cum)}</b></td></tr>`;
+      prevCum=cum;
+    }
+  }
+  body.innerHTML=rows;
+})();
+
+document.getElementById('calcBtn').addEventListener('click', run);
+document.querySelectorAll('input').forEach(el=>{
+  el.addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+});
+run(); // 載入時先算一次預設值
+</script>
+</body>
+</html>
