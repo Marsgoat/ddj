@@ -182,6 +182,7 @@
     <div class="benefit" id="pillBox" style="display:none;">
       <div style="font-size:13px;color:var(--sub);margin-bottom:6px;" id="pillHead">精力丹換算</div>
       <div class="line"><span>每顆精力丹給本珍獸經驗</span><span id="pillPer"></span></div>
+      <div class="line" id="pillNeed34Line"></div>
       <div class="line" id="pillNeedLine"></div>
     </div>
     <div class="benefit" id="skill6Box">
@@ -408,6 +409,16 @@ function run(){
       `精力丹點滿換算（VIP${pet.vip}加成×${pet.bonus}・珍獸${fmt(pet.petCount)}・單次互動${fmt(pet.interactExp)}）`;
     document.getElementById('pillPer').innerHTML=
       `約 <b>${perPill.toLocaleString('en-US',{maximumFractionDigits:1})}</b>`;
+    if(short>0){
+      const pills34=Math.ceil(short/perPill), batches34=Math.ceil(pills34/999);
+      document.getElementById('pillNeed34Line').innerHTML=
+        `<span style="color:var(--sub)">升滿三+四技能還需</span>`+
+        `<span>約 <b>${fmt(pills34)}</b> 顆 (約 ${fmt(batches34)} 批 × 999)</span>`;
+    } else {
+      document.getElementById('pillNeed34Line').innerHTML=
+        `<span style="color:var(--sub)">升滿三+四技能</span>`+
+        `<span style="color:var(--acc2)">已足夠點滿，不需要精力丹 ✓</span>`;
+    }
     if(shortAll>0){
       const pills=Math.ceil(shortAll/perPill), batches=Math.ceil(pills/999);
       document.getElementById('pillNeedLine').innerHTML=
