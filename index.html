@@ -245,6 +245,8 @@
       <div class="line"><span>六技能加成</span><span id="ben6"></span></div>
       <div class="line"><span>距離點滿 (Lv200) 還需靈草</span><span id="need6"></span></div>
       <div class="line" id="short6Line"></div>
+      <div class="line" style="border-top:1px solid var(--line);padding-top:6px;margin-top:6px;">
+        <span>合計加成 (三+四+五+六)</span><span id="addAll"></span></div>
     </div>
   </div>
 
@@ -325,8 +327,6 @@
     <div class="breakdown" id="otherBreakdown" style="display:none;"></div>
   </div>
   </section>
-
-  <p class="foot">資料內嵌於頁面，離線可用。原始碼：<a href="https://github.com/Marsgoat/ddj" target="_blank" rel="noopener">github.com/Marsgoat/ddj</a></p>
 </div>
 
 <script>
@@ -519,7 +519,7 @@ function run(){
   const shortAll=totalNeed-effectiveBudget;  // 含五技能 (精力丹點滿換算用)
   gid('need3').innerHTML=`Lv${l3}→Lv${MAXLV}　<b>${fmt(need3)}</b>`;
   gid('need4').innerHTML=`Lv${l4}→Lv${MAXLV}　<b>${fmt(need4)}</b>`;
-  gid('need5').innerHTML=`Lv${curL5disp}→Lv${MAXLV}　<b>${fmt(need5)}</b>`;
+  gid('need5').innerHTML=`Lv${curL5disp}→Lv${MAXLV}　<b>${fmtYi(need5)}</b>`;
   gid('needTotal').innerHTML=`<b>${fmt(need34)}</b> EXP`;
   gid('shortLine').innerHTML = short>0
     ? `<span style="color:var(--sub)">扣掉目前經驗後還缺</span><span><b>${fmt(short)}</b> EXP</span>`
@@ -538,6 +538,10 @@ function run(){
   gid('short6Line').innerHTML = s6.short>0
     ? `<span style="color:var(--sub)">扣掉現有靈草後還缺</span><span><b>${fmtYi(s6.short)}</b></span>`
     : `<span style="color:var(--sub)">現有靈草</span><span style="color:var(--acc2)">已足夠點滿六技能 ✓</span>`;
+  // 合計加成 (三+四+五+六)：三四五共用經驗池的加成 + 六技能靈草加成
+  const curTotAll=cur.tot+b6*l6, nwTotAll=nw.tot+b6*s6.newL6;
+  gid('addAll').innerHTML=
+    `${pct(curTotAll)} → <b>${pct(nwTotAll)}</b> &nbsp;(+${pct(nwTotAll-curTotAll)})`;
 
   // 珍獸互動經驗換算
   const petBox=gid('petBox');
