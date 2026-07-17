@@ -30,6 +30,10 @@
   .tab.is-active{background:var(--acc);color:#fff;}
   .tab:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
   .panel[hidden]{display:none;}
+  .page-link{display:block;margin-top:10px;text-align:center;background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:11px;color:var(--acc);
+    text-decoration:none;font-weight:600;font-size:15px;}
+  .page-link:hover{border-color:var(--acc);color:var(--txt);}
 
   /* ===== 共用卡片與表單 ===== */
   .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
@@ -121,6 +125,7 @@
       <button class="tab" id="tab-wealth" role="tab" aria-controls="panel-wealth"
         aria-selected="false" data-target="panel-wealth" tabindex="-1">門客財力計算機</button>
     </div>
+    <a class="page-link" href="activity_schedule.html">📅 大東家活動表（2026–2028）→</a>
   </div>
 
   <section id="panel-skill" class="panel" role="tabpanel" aria-labelledby="tab-skill">

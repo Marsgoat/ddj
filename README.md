@@ -7,6 +7,7 @@
 - **合併版（推薦，一頁切換兩個計算機）**：<https://marsgoat.github.io/ddj/>
   - 直接開技能：<https://marsgoat.github.io/ddj/#skill>
   - 直接開財力：<https://marsgoat.github.io/ddj/#wealth>
+- **活動表（2026–2028）**：<https://marsgoat.github.io/ddj/activity_schedule.html>
 - 獨立頁（舊連結相容）
   - 珍獸技能計算機：<https://marsgoat.github.io/ddj/skill_calc.html>
   - 門客財力計算機：<https://marsgoat.github.io/ddj/wealth_calc.html>
@@ -18,6 +19,7 @@
 | `index.html` | 合併版，頂部分頁鈕切換「珍獸技能計算機」／「門客財力計算機」，選到的分頁記在網址 `#skill` / `#wealth`，可直接分享。 |
 | `skill_calc.html` | 珍獸技能計算機（獨立頁）。 |
 | `wealth_calc.html` | 門客財力計算機（獨立頁）。 |
+| `activity_schedule.html` | 大東家活動表（2026–2028），月曆／一頁循環兩種檢視。 |
 
 合併版與兩個獨立頁的計算結果完全一致；合併時把兩支計算機各自封裝，互不干擾。
 

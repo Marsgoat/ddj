@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>歡樂大東家 活動表 2026–2027</title>
+<style>
+  :root{
+    --bg:#0f1320; --card:#1a2032; --card2:#222a40; --line:#2e3650;
+    --txt:#e8ecf6; --sub:#9aa6c4; --acc:#5b8cff; --acc2:#27c79a;
+    --gold:#ffb454; --cyan:#38d6d0; --today:#5b8cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Segoe UI","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+    line-height:1.5;padding:16px;}
+  .wrap{max-width:640px;margin:0 auto;}
+  h1{font-size:20px;margin:8px 0 2px;}
+  .hint{color:var(--sub);font-size:13px;margin:0 0 14px;}
+  .hint a{color:var(--acc);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:14px;margin-bottom:14px;}
+
+  /* ---- 控制列 ---- */
+  .toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .toolbar select{flex:1;min-width:110px;background:var(--card2);border:1px solid var(--line);
+    color:var(--txt);border-radius:10px;padding:10px;font-size:16px;cursor:pointer;}
+  .toolbar button{background:var(--card2);border:1px solid var(--line);color:var(--sub);
+    border-radius:10px;padding:10px 18px;font-size:15px;cursor:pointer;white-space:nowrap;}
+  .selrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+  .selrow select{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;padding:9px 8px;font-size:16px;cursor:pointer;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{background:var(--card2);border:1px solid var(--line);color:var(--sub);
+    border-radius:999px;padding:7px 13px;font-size:14px;cursor:pointer;user-select:none;}
+  .chip.on{color:#0f1320;font-weight:700;}
+  .chip.g50.on{background:var(--cyan);border-color:var(--cyan);}
+  .chip.gnear.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+
+  /* ---- 列表 ---- */
+  .month{color:var(--sub);font-size:13px;font-weight:700;letter-spacing:1px;
+    margin:16px 4px 8px;border-bottom:1px solid var(--line);padding-bottom:6px;}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:11px 12px;margin-bottom:9px;position:relative;overflow:hidden;}
+  .row.s50{border-color:rgba(56,214,208,.55);}
+  .row.today{border-color:var(--today);box-shadow:0 0 0 1px var(--today);}
+  .row .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:transparent;}
+  .row.s50 .bar{background:var(--cyan);}
+  .rhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+  .date{font-size:15px;font-weight:700;}
+  .date .wd{color:var(--sub);font-weight:400;font-size:13px;margin-left:6px;}
+  .badge-today{background:var(--today);color:#fff;font-size:11px;font-weight:700;
+    border-radius:6px;padding:2px 7px;margin-left:8px;}
+  .mini{font-size:13px;color:var(--sub);background:var(--card2);border:1px solid var(--line);
+    border-radius:8px;padding:3px 9px;white-space:nowrap;}
+  .mini b{color:var(--txt);}
+  .lines{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;}
+  .line{display:flex;align-items:center;gap:7px;font-size:14px;min-width:0;}
+  .tag{font-size:11px;color:var(--sub);flex:0 0 auto;}
+  .ev{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .w{font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;flex:0 0 auto;
+    background:var(--card2);color:var(--sub);border:1px solid var(--line);}
+  .w.w50{background:var(--cyan);color:#0f1320;border-color:var(--cyan);}
+  .w.w20{color:var(--acc2);}
+  .empty{color:var(--sub);text-align:center;padding:30px 0;}
+
+  /* ---- 檢視切換 / 月曆 ---- */
+  .viewtabs{display:flex;gap:8px;margin-bottom:12px;}
+  .viewtabs button{flex:1;background:var(--card2);border:1px solid var(--line);
+    color:var(--sub);border-radius:11px;padding:9px;font-size:15px;font-weight:700;cursor:pointer;}
+  .viewtabs button.on{background:var(--acc2);color:#06231b;border-color:var(--acc2);}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;}
+  .cal-nav button{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;width:48px;height:38px;font-size:20px;cursor:pointer;flex:0 0 auto;}
+  .cal-nav button:disabled{opacity:.35;cursor:default;}
+  .cal-title{font-size:16px;font-weight:800;}
+  /* 橫向不留間隙讓同活動色塊相連；縱向(週)留 4px */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px 0;}
+  .cal-hd{text-align:center;font-size:12px;color:var(--sub);padding:2px 0 4px;font-weight:700;}
+  .cal-hd.sun{color:#ff8080;} .cal-hd.sat{color:#7ba8ff;}
+  .cal-cell{min-height:60px;border:1px solid transparent;padding:3px 5px 4px;
+    background:var(--card);position:relative;display:flex;flex-direction:column;gap:1px;}
+  .cal-cell.blank{background:transparent;}
+  .cal-cell .d{font-size:12px;color:var(--sub);font-weight:700;line-height:1.1;}
+  .cal-cell.act{cursor:pointer;}
+  .cal-cell.act:active{filter:brightness(1.12);}
+  .cal-cell .cev{font-size:12px;font-weight:700;line-height:1.15;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
+  .cal-cell .cw{align-self:flex-start;font-size:10px;font-weight:700;border-radius:5px;
+    padding:0 5px;margin-top:auto;background:rgba(15,19,32,.5);color:var(--txt);border:1px solid rgba(255,255,255,.18);}
+  .cal-cell .cw.w50{background:var(--cyan);color:#0f1320;border-color:var(--cyan);}
+  .cal-cell.c50 .cev{font-weight:800;letter-spacing:.5px;}
+  .cal-cell.sel{box-shadow:inset 0 0 0 2px var(--acc);}
+  .cal-cell.today{box-shadow:inset 0 0 0 2px var(--today);}
+  .cal-cell.today.sel{box-shadow:inset 0 0 0 2px var(--today),inset 0 0 0 4px rgba(91,140,255,.35);}
+  .cal-detail{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;min-height:1px;}
+  .cal-detail .row{margin-bottom:0;}
+  .cal-legend{color:var(--sub);font-size:12px;margin:12px 2px 0;}
+
+  /* ---- 一頁（115 天循環） ---- */
+  .cyc-note{color:var(--sub);font-size:12px;margin:0 2px 10px;}
+  .cyc-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table.cyc{border-collapse:collapse;width:100%;font-size:12px;line-height:1.3;}
+  table.cyc th,table.cyc td{border:1px solid var(--line);padding:3px 6px;text-align:center;white-space:nowrap;}
+  table.cyc thead th{background:var(--card2);color:var(--sub);font-weight:700;}
+  table.cyc td.dt{color:var(--sub);font-variant-numeric:tabular-nums;min-width:38px;}
+  table.cyc td.big,table.cyc td.small{font-weight:700;color:var(--txt);}
+  table.cyc td.w{color:var(--sub);font-weight:700;}
+  table.cyc td.w.w20{color:var(--acc2);}
+  table.cyc tr.s50 td{background:rgba(56,214,208,.15);}
+  table.cyc tr.s50 td.w{color:var(--cyan);}
+  table.cyc tr.cur td{background:rgba(91,140,255,.18);}
+  table.cyc tr.cur.s50 td{background:rgba(56,214,208,.22);}
+  table.cyc td.dt.cur{color:var(--today);font-weight:800;}
+  table.cyc tbody tr.sep td{border-top:2px solid var(--acc);}
+
+  @media (max-width:480px){
+    .lines{grid-template-columns:1fr;}
+    .selrow{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>歡樂大東家 · 活動表</h1>
+  <p class="hint">2026 – 2028 活動查詢　作者：<a href="https://github.com/Marsgoat" target="_blank" rel="noopener">Marsgoat</a></p>
+
+  <div class="card">
+    <div class="viewtabs" id="viewtabs">
+      <button data-v="cal" class="on">月曆</button>
+      <button data-v="cycle">一頁</button>
+    </div>
+    <div class="toolbar" id="toolbar">
+      <select id="yearSel">
+        <option value="2026">2026 年</option>
+        <option value="2027">2027 年</option>
+        <option value="2028">2028 年</option>
+      </select>
+      <select id="monthSel"></select>
+      <button id="near">目前</button>
+    </div>
+    <div class="selrow" id="selrow">
+      <select id="fMulti"><option value="">大榜（全部）</option></select>
+      <select id="fFew"><option value="">小榜（全部）</option></select>
+      <select id="fMini"><option value="">小遊戲（全部）</option></select>
+    </div>
+    <div class="chips" id="chips">
+      <span class="chip g50" data-f="w50">★ 50區</span>
+    </div>
+  </div>
+
+  <div id="calWrap" style="display:none">
+    <div class="card">
+      <div class="cal-nav">
+        <button id="calPrev" aria-label="上個月">‹</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button id="calNext" aria-label="下個月">›</button>
+      </div>
+      <div class="cal-grid" id="calHead"></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-detail" id="calDetail"></div>
+    </div>
+  </div>
+
+  <div id="cycWrap" style="display:none">
+    <div class="card">
+      <div class="cyc-note" id="cycNote"></div>
+      <div class="cyc-wrap">
+        <table class="cyc" id="cycTable"></table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const DATA = {"2026":[["2026-01-01","潛力",20,"商戰",10,"糖果"],["2026-01-04","家貢",10,"賺速",10,"江海"],["2026-01-06","成長",20,"通商",1,"饕餮"],["2026-01-09","家族子嗣",10,"親密",10,"妙玉"],["2026-01-11","財力",20,"銀兩",1,"寶玉"],["2026-01-14","賺速",10,"潛力",1,"滿漢"],["2026-01-16","商戰",20,"宴會",1,"步射"],["2026-01-19","財力",10,"成長",1,"寶玉"],["2026-01-21","親密",50,"個人子嗣",10,"妙玉"],["2026-01-24","潛力",20,"商戰",10,"糖果"],["2026-01-27","家貢",10,"賺速",10,"江海"],["2026-01-29","成長",20,"通商",1,"饕餮"],["2026-02-01","家族子嗣",10,"親密",10,"妙玉"],["2026-02-03","財力",50,"銀兩",1,"寶玉"],["2026-02-06","賺速",10,"潛力",1,"滿漢"],["2026-02-08","商戰",20,"宴會",1,"步射"],["2026-02-11","財力",10,"成長",1,"寶玉"],["2026-02-13","親密",20,"個人子嗣",10,"妙玉"],["2026-02-16","潛力",50,"商戰",10,"糖果"],["2026-02-19","家貢",10,"賺速",10,"江海"],["2026-02-21","成長",20,"通商",1,"饕餮"],["2026-02-24","家族子嗣",10,"親密",10,"妙玉"],["2026-02-26","財力",20,"銀兩",1,"寶玉"],["2026-03-01","賺速",10,"潛力",1,"滿漢"],["2026-03-03","商戰",20,"宴會",1,"步射"],["2026-03-06","財力",10,"成長",1,"寶玉"],["2026-03-08","親密",20,"個人子嗣",10,"妙玉"],["2026-03-11","潛力",20,"商戰",10,"糖果"],["2026-03-14","家貢",10,"賺速",10,"江海"],["2026-03-16","成長",50,"通商",1,"饕餮"],["2026-03-19","家族子嗣",10,"親密",10,"妙玉"],["2026-03-21","財力",20,"銀兩",1,"寶玉"],["2026-03-24","賺速",10,"潛力",1,"滿漢"],["2026-03-26","商戰",20,"宴會",1,"步射"],["2026-03-29","財力",10,"成長",1,"寶玉"],["2026-03-31","親密",20,"個人子嗣",10,"妙玉"],["2026-04-03","潛力",20,"商戰",10,"糖果"],["2026-04-06","家貢",10,"賺速",10,"江海"],["2026-04-08","成長",20,"通商",1,"饕餮"],["2026-04-11","家族子嗣",10,"親密",10,"妙玉"],["2026-04-13","財力",20,"銀兩",1,"寶玉"],["2026-04-16","賺速",10,"潛力",1,"滿漢"],["2026-04-18","商戰",50,"宴會",1,"步射"],["2026-04-21","財力",10,"成長",1,"寶玉"],["2026-04-23","親密",20,"個人子嗣",10,"妙玉"],["2026-04-26","潛力",20,"商戰",10,"糖果"],["2026-04-29","家貢",10,"賺速",10,"江海"],["2026-05-01","成長",20,"通商",1,"饕餮"],["2026-05-04","家族子嗣",10,"親密",10,"妙玉"],["2026-05-06","財力",20,"銀兩",1,"寶玉"],["2026-05-09","賺速",10,"潛力",1,"滿漢"],["2026-05-11","商戰",20,"宴會",1,"步射"],["2026-05-14","財力",10,"成長",1,"寶玉"],["2026-05-16","親密",50,"個人子嗣",10,"妙玉"],["2026-05-19","潛力",20,"商戰",10,"糖果"],["2026-05-22","家貢",10,"賺速",10,"江海"],["2026-05-24","成長",20,"通商",1,"饕餮"],["2026-05-27","家族子嗣",10,"親密",10,"妙玉"],["2026-05-29","財力",50,"銀兩",1,"寶玉"],["2026-06-01","賺速",10,"潛力",1,"滿漢"],["2026-06-03","商戰",20,"宴會",1,"步射"],["2026-06-06","財力",10,"成長",1,"寶玉"],["2026-06-08","親密",20,"個人子嗣",10,"妙玉"],["2026-06-11","潛力",50,"商戰",10,"糖果"],["2026-06-14","家貢",10,"賺速",10,"江海"],["2026-06-16","成長",20,"通商",1,"饕餮"],["2026-06-19","家族子嗣",10,"親密",10,"妙玉"],["2026-06-21","財力",20,"銀兩",1,"寶玉"],["2026-06-24","賺速",10,"潛力",1,"滿漢"],["2026-06-26","商戰",20,"宴會",1,"步射"],["2026-06-29","財力",10,"成長",1,"寶玉"],["2026-07-01","親密",20,"個人子嗣",10,"妙玉"],["2026-07-04","潛力",20,"商戰",10,"糖果"],["2026-07-07","家貢",10,"賺速",10,"江海"],["2026-07-09","成長",50,"通商",1,"饕餮"],["2026-07-12","家族子嗣",10,"親密",10,"妙玉"],["2026-07-14","財力",20,"銀兩",1,"寶玉"],["2026-07-17","賺速",10,"潛力",1,"滿漢"],["2026-07-19","商戰",20,"宴會",1,"步射"],["2026-07-22","財力",10,"成長",1,"寶玉"],["2026-07-24","親密",20,"個人子嗣",10,"妙玉"],["2026-07-27","潛力",20,"商戰",10,"糖果"],["2026-07-30","家貢",10,"賺速",10,"江海"],["2026-08-01","成長",20,"通商",1,"饕餮"],["2026-08-04","家族子嗣",10,"親密",10,"妙玉"],["2026-08-06","財力",20,"銀兩",1,"寶玉"],["2026-08-09","賺速",10,"潛力",1,"滿漢"],["2026-08-11","商戰",50,"宴會",1,"步射"],["2026-08-14","財力",10,"成長",1,"寶玉"],["2026-08-16","親密",20,"個人子嗣",10,"妙玉"],["2026-08-19","潛力",20,"商戰",10,"糖果"],["2026-08-22","家貢",10,"賺速",10,"江海"],["2026-08-24","成長",20,"通商",1,"饕餮"],["2026-08-27","家族子嗣",10,"親密",10,"妙玉"],["2026-08-29","財力",20,"銀兩",1,"寶玉"],["2026-09-01","賺速",10,"潛力",1,"滿漢"],["2026-09-03","商戰",20,"宴會",1,"步射"],["2026-09-06","財力",10,"成長",1,"寶玉"],["2026-09-08","親密",50,"個人子嗣",10,"妙玉"],["2026-09-11","潛力",20,"商戰",10,"糖果"],["2026-09-14","家貢",10,"賺速",10,"江海"],["2026-09-16","成長",20,"通商",1,"饕餮"],["2026-09-19","家族子嗣",10,"親密",10,"妙玉"],["2026-09-21","財力",50,"銀兩",1,"寶玉"],["2026-09-24","賺速",10,"潛力",1,"滿漢"],["2026-09-26","商戰",20,"宴會",1,"步射"],["2026-09-29","財力",10,"成長",1,"寶玉"],["2026-10-01","親密",20,"個人子嗣",10,"妙玉"],["2026-10-04","潛力",50,"商戰",10,"糖果"],["2026-10-07","家貢",10,"賺速",10,"江海"],["2026-10-09","成長",20,"通商",1,"饕餮"],["2026-10-12","家族子嗣",10,"親密",10,"妙玉"],["2026-10-14","財力",20,"銀兩",1,"寶玉"],["2026-10-17","賺速",10,"潛力",1,"滿漢"],["2026-10-19","商戰",20,"宴會",1,"步射"],["2026-10-22","財力",10,"成長",1,"寶玉"],["2026-10-24","親密",20,"個人子嗣",10,"妙玉"],["2026-10-27","潛力",20,"商戰",10,"糖果"],["2026-10-30","家貢",10,"賺速",10,"江海"],["2026-11-01","成長",50,"通商",1,"饕餮"],["2026-11-04","家族子嗣",10,"親密",10,"妙玉"],["2026-11-06","財力",20,"銀兩",1,"寶玉"],["2026-11-09","賺速",10,"潛力",1,"滿漢"],["2026-11-11","商戰",20,"宴會",1,"步射"],["2026-11-14","財力",10,"成長",1,"寶玉"],["2026-11-16","親密",20,"個人子嗣",10,"妙玉"],["2026-11-19","潛力",20,"商戰",10,"糖果"],["2026-11-22","家貢",10,"賺速",10,"江海"],["2026-11-24","成長",20,"通商",1,"饕餮"],["2026-11-27","家族子嗣",10,"親密",10,"妙玉"],["2026-11-29","財力",20,"銀兩",1,"寶玉"],["2026-12-02","賺速",10,"潛力",1,"滿漢"],["2026-12-04","商戰",50,"宴會",1,"步射"],["2026-12-07","財力",10,"成長",1,"寶玉"],["2026-12-09","親密",20,"個人子嗣",10,"妙玉"],["2026-12-12","潛力",20,"商戰",10,"糖果"],["2026-12-15","家貢",10,"賺速",10,"江海"],["2026-12-17","成長",20,"通商",1,"饕餮"],["2026-12-20","家族子嗣",10,"親密",10,"妙玉"],["2026-12-22","財力",20,"銀兩",1,"寶玉"],["2026-12-25","賺速",10,"潛力",1,"滿漢"],["2026-12-27","商戰",20,"宴會",1,"步射"],["2026-12-30","財力",10,"成長",1,"寶玉"]],"2027":[["2027-01-01","親密",50,"個人子嗣",10,"妙玉"],["2027-01-04","潛力",20,"商戰",10,"糖果"],["2027-01-07","家貢",10,"賺速",10,"江海"],["2027-01-09","成長",20,"通商",1,"饕餮"],["2027-01-12","家族子嗣",10,"親密",10,"妙玉"],["2027-01-14","財力",50,"銀兩",1,"寶玉"],["2027-01-17","賺速",10,"潛力",1,"滿漢"],["2027-01-19","商戰",20,"宴會",1,"步射"],["2027-01-22","財力",10,"成長",1,"寶玉"],["2027-01-24","親密",20,"個人子嗣",10,"妙玉"],["2027-01-27","潛力",50,"商戰",10,"糖果"],["2027-01-30","家貢",10,"賺速",10,"江海"],["2027-02-01","成長",20,"通商",1,"饕餮"],["2027-02-04","家族子嗣",10,"親密",10,"妙玉"],["2027-02-06","財力",20,"銀兩",1,"寶玉"],["2027-02-09","賺速",10,"潛力",1,"滿漢"],["2027-02-11","商戰",20,"宴會",1,"步射"],["2027-02-14","財力",10,"成長",1,"寶玉"],["2027-02-16","親密",20,"個人子嗣",10,"妙玉"],["2027-02-19","潛力",20,"商戰",10,"糖果"],["2027-02-22","家貢",10,"賺速",10,"江海"],["2027-02-24","成長",50,"通商",1,"饕餮"],["2027-02-27","家族子嗣",10,"親密",10,"妙玉"],["2027-03-01","財力",20,"銀兩",1,"寶玉"],["2027-03-04","賺速",10,"潛力",1,"滿漢"],["2027-03-06","商戰",20,"宴會",1,"步射"],["2027-03-09","財力",10,"成長",1,"寶玉"],["2027-03-11","親密",20,"個人子嗣",10,"妙玉"],["2027-03-14","潛力",20,"商戰",10,"糖果"],["2027-03-17","家貢",10,"賺速",10,"江海"],["2027-03-19","成長",20,"通商",1,"饕餮"],["2027-03-22","家族子嗣",10,"親密",10,"妙玉"],["2027-03-24","財力",20,"銀兩",1,"寶玉"],["2027-03-27","賺速",10,"潛力",1,"滿漢"],["2027-03-29","商戰",50,"宴會",1,"步射"],["2027-04-01","財力",10,"成長",1,"寶玉"],["2027-04-03","親密",20,"個人子嗣",10,"妙玉"],["2027-04-06","潛力",20,"商戰",10,"糖果"],["2027-04-09","家貢",10,"賺速",10,"江海"],["2027-04-11","成長",20,"通商",1,"饕餮"],["2027-04-14","家族子嗣",10,"親密",10,"妙玉"],["2027-04-16","財力",20,"銀兩",1,"寶玉"],["2027-04-19","賺速",10,"潛力",1,"滿漢"],["2027-04-21","商戰",20,"宴會",1,"步射"],["2027-04-24","財力",10,"成長",1,"寶玉"],["2027-04-26","親密",50,"個人子嗣",10,"妙玉"],["2027-04-29","潛力",20,"商戰",10,"糖果"],["2027-05-02","家貢",10,"賺速",10,"江海"],["2027-05-04","成長",20,"通商",1,"饕餮"],["2027-05-07","家族子嗣",10,"親密",10,"妙玉"],["2027-05-09","財力",50,"銀兩",1,"寶玉"],["2027-05-12","賺速",10,"潛力",1,"滿漢"],["2027-05-14","商戰",20,"宴會",1,"步射"],["2027-05-17","財力",10,"成長",1,"寶玉"],["2027-05-19","親密",20,"個人子嗣",10,"妙玉"],["2027-05-22","潛力",50,"商戰",10,"糖果"],["2027-05-25","家貢",10,"賺速",10,"江海"],["2027-05-27","成長",20,"通商",1,"饕餮"],["2027-05-30","家族子嗣",10,"親密",10,"妙玉"],["2027-06-01","財力",20,"銀兩",1,"寶玉"],["2027-06-04","賺速",10,"潛力",1,"滿漢"],["2027-06-06","商戰",20,"宴會",1,"步射"],["2027-06-09","財力",10,"成長",1,"寶玉"],["2027-06-11","親密",20,"個人子嗣",10,"妙玉"],["2027-06-14","潛力",20,"商戰",10,"糖果"],["2027-06-17","家貢",10,"賺速",10,"江海"],["2027-06-19","成長",50,"通商",1,"饕餮"],["2027-06-22","家族子嗣",10,"親密",10,"妙玉"],["2027-06-24","財力",20,"銀兩",1,"寶玉"],["2027-06-27","賺速",10,"潛力",1,"滿漢"],["2027-06-29","商戰",20,"宴會",1,"步射"],["2027-07-02","財力",10,"成長",1,"寶玉"],["2027-07-04","親密",20,"個人子嗣",10,"妙玉"],["2027-07-07","潛力",20,"商戰",10,"糖果"],["2027-07-10","家貢",10,"賺速",10,"江海"],["2027-07-12","成長",20,"通商",1,"饕餮"],["2027-07-15","家族子嗣",10,"親密",10,"妙玉"],["2027-07-17","財力",20,"銀兩",1,"寶玉"],["2027-07-20","賺速",10,"潛力",1,"滿漢"],["2027-07-22","商戰",50,"宴會",1,"步射"],["2027-07-25","財力",10,"成長",1,"寶玉"],["2027-07-27","親密",20,"個人子嗣",10,"妙玉"],["2027-07-30","潛力",20,"商戰",10,"糖果"],["2027-08-02","家貢",10,"賺速",10,"江海"],["2027-08-04","成長",20,"通商",1,"饕餮"],["2027-08-07","家族子嗣",10,"親密",10,"妙玉"],["2027-08-09","財力",20,"銀兩",1,"寶玉"],["2027-08-12","賺速",10,"潛力",1,"滿漢"],["2027-08-14","商戰",20,"宴會",1,"步射"],["2027-08-17","財力",10,"成長",1,"寶玉"],["2027-08-19","親密",50,"個人子嗣",10,"妙玉"],["2027-08-22","潛力",20,"商戰",10,"糖果"],["2027-08-25","家貢",10,"賺速",10,"江海"],["2027-08-27","成長",20,"通商",1,"饕餮"],["2027-08-30","家族子嗣",10,"親密",10,"妙玉"],["2027-09-01","財力",50,"銀兩",1,"寶玉"],["2027-09-04","賺速",10,"潛力",1,"滿漢"],["2027-09-06","商戰",20,"宴會",1,"步射"],["2027-09-09","財力",10,"成長",1,"寶玉"],["2027-09-11","親密",20,"個人子嗣",10,"妙玉"],["2027-09-14","潛力",50,"商戰",10,"糖果"],["2027-09-17","家貢",10,"賺速",10,"江海"],["2027-09-19","成長",20,"通商",1,"饕餮"],["2027-09-22","家族子嗣",10,"親密",10,"妙玉"],["2027-09-24","財力",20,"銀兩",1,"寶玉"],["2027-09-27","賺速",10,"潛力",1,"滿漢"],["2027-09-29","商戰",20,"宴會",1,"步射"],["2027-10-02","財力",10,"成長",1,"寶玉"],["2027-10-04","親密",20,"個人子嗣",10,"妙玉"],["2027-10-07","潛力",20,"商戰",10,"糖果"],["2027-10-10","家貢",10,"賺速",10,"江海"],["2027-10-12","成長",50,"通商",1,"饕餮"],["2027-10-15","家族子嗣",10,"親密",10,"妙玉"],["2027-10-17","財力",20,"銀兩",1,"寶玉"],["2027-10-20","賺速",10,"潛力",1,"滿漢"],["2027-10-22","商戰",20,"宴會",1,"步射"],["2027-10-25","財力",10,"成長",1,"寶玉"],["2027-10-27","親密",20,"個人子嗣",10,"妙玉"],["2027-10-30","潛力",20,"商戰",10,"糖果"],["2027-11-02","家貢",10,"賺速",10,"江海"],["2027-11-04","成長",20,"通商",1,"饕餮"],["2027-11-07","家族子嗣",10,"親密",10,"妙玉"],["2027-11-09","財力",20,"銀兩",1,"寶玉"],["2027-11-12","賺速",10,"潛力",1,"滿漢"],["2027-11-14","商戰",50,"宴會",1,"步射"],["2027-11-17","財力",10,"成長",1,"寶玉"],["2027-11-19","親密",20,"個人子嗣",10,"妙玉"],["2027-11-22","潛力",20,"商戰",10,"糖果"],["2027-11-25","家貢",10,"賺速",10,"江海"],["2027-11-27","成長",20,"通商",1,"饕餮"],["2027-11-30","家族子嗣",10,"親密",10,"妙玉"],["2027-12-02","財力",20,"銀兩",1,"寶玉"],["2027-12-05","賺速",10,"潛力",1,"滿漢"],["2027-12-07","商戰",20,"宴會",1,"步射"],["2027-12-10","財力",10,"成長",1,"寶玉"],["2027-12-12","親密",50,"個人子嗣",10,"妙玉"],["2027-12-15","潛力",20,"商戰",10,"糖果"],["2027-12-18","家貢",10,"賺速",10,"江海"],["2027-12-20","成長",20,"通商",1,"饕餮"],["2027-12-23","家族子嗣",10,"親密",10,"妙玉"],["2027-12-25","財力",50,"銀兩",1,"寶玉"],["2027-12-28","賺速",10,"潛力",1,"滿漢"],["2027-12-30","商戰",20,"宴會",1,"步射"]],"2028":[["2028-01-02","財力",10,"成長",1,"寶玉"],["2028-01-04","親密",20,"個人子嗣",10,"妙玉"],["2028-01-07","潛力",50,"商戰",10,"糖果"],["2028-01-10","家貢",10,"賺速",10,"江海"],["2028-01-12","成長",20,"通商",1,"饕餮"],["2028-01-15","家族子嗣",10,"親密",10,"妙玉"],["2028-01-17","財力",20,"銀兩",1,"寶玉"],["2028-01-20","賺速",10,"潛力",1,"滿漢"],["2028-01-22","商戰",20,"宴會",1,"步射"],["2028-01-25","財力",10,"成長",1,"寶玉"],["2028-01-27","親密",20,"個人子嗣",10,"妙玉"],["2028-01-30","潛力",20,"商戰",10,"糖果"],["2028-02-02","家貢",10,"賺速",10,"江海"],["2028-02-04","成長",50,"通商",1,"饕餮"],["2028-02-07","家族子嗣",10,"親密",10,"妙玉"],["2028-02-09","財力",20,"銀兩",1,"寶玉"],["2028-02-12","賺速",10,"潛力",1,"滿漢"],["2028-02-14","商戰",20,"宴會",1,"步射"],["2028-02-17","財力",10,"成長",1,"寶玉"],["2028-02-19","親密",20,"個人子嗣",10,"妙玉"],["2028-02-22","潛力",20,"商戰",10,"糖果"],["2028-02-25","家貢",10,"賺速",10,"江海"],["2028-02-27","成長",20,"通商",1,"饕餮"],["2028-03-01","家族子嗣",10,"親密",10,"妙玉"],["2028-03-03","財力",20,"銀兩",1,"寶玉"],["2028-03-06","賺速",10,"潛力",1,"滿漢"],["2028-03-08","商戰",50,"宴會",1,"步射"],["2028-03-11","財力",10,"成長",1,"寶玉"],["2028-03-13","親密",20,"個人子嗣",10,"妙玉"],["2028-03-16","潛力",20,"商戰",10,"糖果"],["2028-03-19","家貢",10,"賺速",10,"江海"],["2028-03-21","成長",20,"通商",1,"饕餮"],["2028-03-24","家族子嗣",10,"親密",10,"妙玉"],["2028-03-26","財力",20,"銀兩",1,"寶玉"],["2028-03-29","賺速",10,"潛力",1,"滿漢"],["2028-03-31","商戰",20,"宴會",1,"步射"],["2028-04-03","財力",10,"成長",1,"寶玉"],["2028-04-05","親密",50,"個人子嗣",10,"妙玉"],["2028-04-08","潛力",20,"商戰",10,"糖果"],["2028-04-11","家貢",10,"賺速",10,"江海"],["2028-04-13","成長",20,"通商",1,"饕餮"],["2028-04-16","家族子嗣",10,"親密",10,"妙玉"],["2028-04-18","財力",50,"銀兩",1,"寶玉"],["2028-04-21","賺速",10,"潛力",1,"滿漢"],["2028-04-23","商戰",20,"宴會",1,"步射"],["2028-04-26","財力",10,"成長",1,"寶玉"],["2028-04-28","親密",20,"個人子嗣",10,"妙玉"],["2028-05-01","潛力",50,"商戰",10,"糖果"],["2028-05-04","家貢",10,"賺速",10,"江海"],["2028-05-06","成長",20,"通商",1,"饕餮"],["2028-05-09","家族子嗣",10,"親密",10,"妙玉"],["2028-05-11","財力",20,"銀兩",1,"寶玉"],["2028-05-14","賺速",10,"潛力",1,"滿漢"],["2028-05-16","商戰",20,"宴會",1,"步射"],["2028-05-19","財力",10,"成長",1,"寶玉"],["2028-05-21","親密",20,"個人子嗣",10,"妙玉"],["2028-05-24","潛力",20,"商戰",10,"糖果"],["2028-05-27","家貢",10,"賺速",10,"江海"],["2028-05-29","成長",50,"通商",1,"饕餮"],["2028-06-01","家族子嗣",10,"親密",10,"妙玉"],["2028-06-03","財力",20,"銀兩",1,"寶玉"],["2028-06-06","賺速",10,"潛力",1,"滿漢"],["2028-06-08","商戰",20,"宴會",1,"步射"],["2028-06-11","財力",10,"成長",1,"寶玉"],["2028-06-13","親密",20,"個人子嗣",10,"妙玉"],["2028-06-16","潛力",20,"商戰",10,"糖果"],["2028-06-19","家貢",10,"賺速",10,"江海"],["2028-06-21","成長",20,"通商",1,"饕餮"],["2028-06-24","家族子嗣",10,"親密",10,"妙玉"],["2028-06-26","財力",20,"銀兩",1,"寶玉"],["2028-06-29","賺速",10,"潛力",1,"滿漢"],["2028-07-01","商戰",50,"宴會",1,"步射"],["2028-07-04","財力",10,"成長",1,"寶玉"],["2028-07-06","親密",20,"個人子嗣",10,"妙玉"],["2028-07-09","潛力",20,"商戰",10,"糖果"],["2028-07-12","家貢",10,"賺速",10,"江海"],["2028-07-14","成長",20,"通商",1,"饕餮"],["2028-07-17","家族子嗣",10,"親密",10,"妙玉"],["2028-07-19","財力",20,"銀兩",1,"寶玉"],["2028-07-22","賺速",10,"潛力",1,"滿漢"],["2028-07-24","商戰",20,"宴會",1,"步射"],["2028-07-27","財力",10,"成長",1,"寶玉"],["2028-07-29","親密",50,"個人子嗣",10,"妙玉"],["2028-08-01","潛力",20,"商戰",10,"糖果"],["2028-08-04","家貢",10,"賺速",10,"江海"],["2028-08-06","成長",20,"通商",1,"饕餮"],["2028-08-09","家族子嗣",10,"親密",10,"妙玉"],["2028-08-11","財力",50,"銀兩",1,"寶玉"],["2028-08-14","賺速",10,"潛力",1,"滿漢"],["2028-08-16","商戰",20,"宴會",1,"步射"],["2028-08-19","財力",10,"成長",1,"寶玉"],["2028-08-21","親密",20,"個人子嗣",10,"妙玉"],["2028-08-24","潛力",50,"商戰",10,"糖果"],["2028-08-27","家貢",10,"賺速",10,"江海"],["2028-08-29","成長",20,"通商",1,"饕餮"],["2028-09-01","家族子嗣",10,"親密",10,"妙玉"],["2028-09-03","財力",20,"銀兩",1,"寶玉"],["2028-09-06","賺速",10,"潛力",1,"滿漢"],["2028-09-08","商戰",20,"宴會",1,"步射"],["2028-09-11","財力",10,"成長",1,"寶玉"],["2028-09-13","親密",20,"個人子嗣",10,"妙玉"],["2028-09-16","潛力",20,"商戰",10,"糖果"],["2028-09-19","家貢",10,"賺速",10,"江海"],["2028-09-21","成長",50,"通商",1,"饕餮"],["2028-09-24","家族子嗣",10,"親密",10,"妙玉"],["2028-09-26","財力",20,"銀兩",1,"寶玉"],["2028-09-29","賺速",10,"潛力",1,"滿漢"],["2028-10-01","商戰",20,"宴會",1,"步射"],["2028-10-04","財力",10,"成長",1,"寶玉"],["2028-10-06","親密",20,"個人子嗣",10,"妙玉"],["2028-10-09","潛力",20,"商戰",10,"糖果"],["2028-10-12","家貢",10,"賺速",10,"江海"],["2028-10-14","成長",20,"通商",1,"饕餮"],["2028-10-17","家族子嗣",10,"親密",10,"妙玉"],["2028-10-19","財力",20,"銀兩",1,"寶玉"],["2028-10-22","賺速",10,"潛力",1,"滿漢"],["2028-10-24","商戰",50,"宴會",1,"步射"],["2028-10-27","財力",10,"成長",1,"寶玉"],["2028-10-29","親密",20,"個人子嗣",10,"妙玉"],["2028-11-01","潛力",20,"商戰",10,"糖果"],["2028-11-04","家貢",10,"賺速",10,"江海"],["2028-11-06","成長",20,"通商",1,"饕餮"],["2028-11-09","家族子嗣",10,"親密",10,"妙玉"],["2028-11-11","財力",20,"銀兩",1,"寶玉"],["2028-11-14","賺速",10,"潛力",1,"滿漢"],["2028-11-16","商戰",20,"宴會",1,"步射"],["2028-11-19","財力",10,"成長",1,"寶玉"],["2028-11-21","親密",50,"個人子嗣",10,"妙玉"],["2028-11-24","潛力",20,"商戰",10,"糖果"],["2028-11-27","家貢",10,"賺速",10,"江海"],["2028-11-29","成長",20,"通商",1,"饕餮"],["2028-12-02","家族子嗣",10,"親密",10,"妙玉"],["2028-12-04","財力",50,"銀兩",1,"寶玉"],["2028-12-07","賺速",10,"潛力",1,"滿漢"],["2028-12-09","商戰",20,"宴會",1,"步射"],["2028-12-12","財力",10,"成長",1,"寶玉"],["2028-12-14","親密",20,"個人子嗣",10,"妙玉"],["2028-12-17","潛力",50,"商戰",10,"糖果"],["2028-12-20","家貢",10,"賺速",10,"江海"],["2028-12-22","成長",20,"通商",1,"饕餮"],["2028-12-25","家族子嗣",10,"親密",10,"妙玉"],["2028-12-27","財力",20,"銀兩",1,"寶玉"],["2028-12-30","賺速",10,"潛力",1,"滿漢"]]};
+const TODAY = "2026-07-17"; // 由環境注入的今天日期 YYYY-MM-DD
+
+const WD = ["日","一","二","三","四","五","六"];
+const el = (id)=>document.getElementById(id);
+let state = { year:"2026", view:"cal", multi:"", few:"", mini:"", w50:false, calMonth:0, selDate:null };
+
+function weekday(iso){
+  // iso: YYYY-MM-DD  → 以 UTC 計算避免時區位移
+  const [y,m,d] = iso.split("-").map(Number);
+  return WD[new Date(Date.UTC(y,m-1,d)).getUTCDay()];
+}
+function fmtDate(iso){ const p=iso.split("-"); return p[1]+"/"+p[2]; }
+
+// 找出「最近」的日期：>= 今天的第一筆；若整年都過了則取最後一筆
+function nearestDate(rows){
+  for(const r of rows){ if(r[0] >= TODAY) return r[0]; }
+  return rows.length ? rows[rows.length-1][0] : null;
+}
+
+function distinct(idx){
+  const both = [...DATA["2026"], ...DATA["2027"]];
+  return [...new Set(both.map(r=>r[idx]))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+}
+function fillSelect(sel, idx, label){
+  distinct(idx).forEach(v=>{
+    const o=document.createElement("option"); o.value=v; o.textContent=v; sel.appendChild(o);
+  });
+}
+
+const wCls  = (w)=> "w "  + (w===50?"w50":w>=20?"w20":"");
+const cwCls = (w)=> "cw " + (w===50?"w50":w>=20?"w20":"");
+
+// ---- 月曆模式 ----
+// 相鄰活動用兩種灰階交替區分；50 區以青色特別標示
+const GRAY_A="#8b93a6", GRAY_B="#565d70", CYAN50="#38d6d0";
+
+// 全部活動（跨年）排序，供「某天正在進行的活動」查詢
+let _ALL=null;
+function allSorted(){ if(!_ALL){ _ALL=Object.values(DATA).flat().slice().sort((a,b)=> a[0]<b[0]?-1:1); } return _ALL; }
+function activeIdx(iso){   // 該日正在進行活動於全表的索引（-1 表無）；相鄰活動索引差 1，用來交替灰階
+  const A=allSorted(); let lo=0,hi=A.length-1,res=-1;
+  while(lo<=hi){ const mid=(lo+hi)>>1; if(A[mid][0]<=iso){ res=mid; lo=mid+1; } else hi=mid-1; }
+  return res;
+}
+function activeOn(iso){ const i=activeIdx(iso); return i<0 ? null : allSorted()[i]; }
+function nextStartAfter(iso){ const A=allSorted(); for(const r of A){ if(r[0]>iso) return r[0]; } return null; }
+function addDays(iso,n){ const [y,m,d]=iso.split("-").map(Number); const t=new Date(Date.UTC(y,m-1,d+n)); return t.toISOString().slice(0,10); }
+const isStartDate = (iso)=>{ const r=activeOn(iso); return !!r && r[0]===iso; };
+
+function renderCal(){
+  const y = Number(state.year), m = state.calMonth;
+  const near = nearestDate(DATA[state.year] || []);
+  el("calTitle").textContent = `${y} 年 ${m+1} 月`;
+  el("calPrev").disabled = !(m>0 || DATA[String(y-1)]);
+  el("calNext").disabled = !(m<11 || DATA[String(y+1)]);
+  el("calHead").innerHTML = WD.map((w,i)=>`<div class="cal-hd${i===0?' sun':i===6?' sat':''}">${w}</div>`).join("");
+
+  const firstWd = new Date(Date.UTC(y,m,1)).getUTCDay();
+  const dim = new Date(Date.UTC(y,m+1,0)).getUTCDate();
+  const pad = (n)=>String(n).padStart(2,"0");
+  let cells = "";
+  for(let i=0;i<firstWd;i++) cells += `<div class="cal-cell blank"></div>`;
+  for(let d=1; d<=dim; d++){
+    const iso = `${y}-${pad(m+1)}-${pad(d)}`;
+    const wd = new Date(Date.UTC(y,m,d)).getUTCDay();
+    const idx = activeIdx(iso);
+    if(idx<0){ cells += `<div class="cal-cell"><div class="d">${d}</div></div>`; continue; }
+    const r = allSorted()[idx];
+    const mu=r[1], mw=r[2], start=(r[0]===iso), is50=(mw===50);
+    // 色塊左右收邊：週首/週尾、月首/月尾、或隔天換新活動即收邊
+    const nextNewDay = (d<dim) && isStartDate(`${y}-${pad(m+1)}-${pad(d+1)}`);
+    const segLeft  = start || wd===0 || d===1;
+    const segRight = wd===6 || d===dim || nextNewDay;
+    // 50 區＝青色特別明顯；其餘用相鄰交替灰階
+    const col  = is50 ? CYAN50 : (idx%2===0 ? GRAY_A : GRAY_B);
+    const bcol = is50 ? col : col+"80";
+    const bg   = is50 ? col+"33" : col+"1c";
+    const rad = (segLeft&&segRight) ? "8px" : segLeft ? "8px 0 0 8px" : segRight ? "0 8px 8px 0" : "0";
+    const style = `background:${bg};border-top:1px solid ${bcol};border-bottom:1px solid ${bcol};`
+      + (segLeft?`border-left:1px solid ${bcol};`:``)
+      + (segRight?`border-right:1px solid ${bcol};`:``)
+      + `border-radius:${rad};`;
+    const cls = ["cal-cell","act", is50?"c50":"", iso===near?"today":"", iso===state.selDate?"sel":""].filter(Boolean).join(" ");
+    cells += `<div class="${cls}" data-date="${iso}" style="${style}">
+      <div class="d">${d}</div>
+      <div class="cev" style="color:${is50?CYAN50:'#d3d9e6'}">${mu}</div>
+      ${start?`<div class="${cwCls(mw)}">${mw}</div>`:``}
+    </div>`;
+  }
+  el("calGrid").innerHTML = cells;
+  renderCalDetail();
+}
+
+function renderCalDetail(){
+  const box = el("calDetail");
+  const r = state.selDate ? activeOn(state.selDate) : null;
+  if(!r){ box.innerHTML = `<div class="empty" style="padding:14px 0">點選日期查看完整內容</div>`; return; }
+  const [ ,mu,mw,fe,fw,mi] = r;
+  const start = r[0];
+  const ns = nextStartAfter(start);
+  const end = ns ? addDays(ns,-1) : start;
+  const near = nearestDate(DATA[state.year]||[]);
+  const isNow = state.selDate>=start && state.selDate<=end && start===near;
+  const range = (start===end) ? `${fmtDate(start)}（週${weekday(start)}）`
+                              : `${fmtDate(start)}–${fmtDate(end)}（週${weekday(start)}～週${weekday(end)}）`;
+  box.innerHTML = `<div class="row ${mw===50?'s50':''}">
+    <div class="bar"></div>
+    <div class="rhead">
+      <div class="date">${range}${isNow?'<span class="badge-today">目前</span>':''}</div>
+      <div class="mini">🎮 <b>${mi}</b></div>
+    </div>
+    <div class="lines">
+      <div class="line"><span class="tag">大榜</span><span class="ev">${mu}</span><span class="${wCls(mw)}">${mw}</span></div>
+      <div class="line"><span class="tag">小榜</span><span class="ev">${fe}</span><span class="${wCls(fw)}">${fw}</span></div>
+    </div>
+  </div>`;
+}
+
+// ---- 一頁模式（115 天循環，依所選年份即時計算；跨年連續故各年日期不同） ----
+const CYC_EPOCH = Date.UTC(2026,0,1);
+function cycleOffset(iso){
+  const [y,m,d]=iso.split("-").map(Number);
+  const days=Math.round((Date.UTC(y,m-1,d)-CYC_EPOCH)/86400000);
+  return ((days%115)+115)%115;   // 0..114，唯一對應循環中的位置
+}
+function renderCycle(){
+  const rows = (DATA[state.year]||[]).filter(r=>{
+    const [ ,mu,mw,fe,fw,mi]=r;
+    if(state.multi && mu!==state.multi) return false;
+    if(state.few && fe!==state.few) return false;
+    if(state.mini && mi!==state.mini) return false;
+    if(state.w50 && mw!==50) return false;
+    return true;
+  });
+  // 依循環位置(offset)分組，每組收集該年出現的日期
+  const groups=new Map();
+  for(const r of rows){
+    const off=cycleOffset(r[0]);
+    let g=groups.get(off);
+    if(!g){ g={ev:r.slice(1), dates:[], first:r[0]}; groups.set(off,g); }
+    g.dates.push(fmtDate(r[0]));
+  }
+  const list=[...groups.values()].sort((a,b)=> a.first<b.first?-1:1);
+  el("cycNote").textContent = `${state.year} 年・115 天循環一覽（共 ${list.length} 個循環位置；跨年連續，各年日期不同）`;
+
+  const near = nearestDate(DATA[state.year]||[]);
+  const curV = near ? fmtDate(near) : null;
+  const maxD = list.reduce((m,g)=>Math.max(m,g.dates.length),0) || 1;
+  const wc = (w)=> "w" + (w>=20 && w<50 ? " w20" : "");
+  let html = `<thead><tr><th colspan="${maxD}">日期</th><th>大榜</th><th>區數</th><th>小榜</th><th>區數</th><th>小遊戲</th></tr></thead><tbody>`;
+  if(!list.length){
+    html += `<tr><td colspan="${maxD+5}"><div class="empty" style="padding:20px 0">沒有符合條件的活動</div></td></tr>`;
+  }
+  for(const g of list){
+    const [mu,mw,fe,fw,mi]=g.ev;
+    const isCur = curV && g.dates.includes(curV);
+    const cls = [mw===50?"s50":"", isCur?"cur":""].filter(Boolean).join(" ");
+    let dts="";
+    for(let i=0;i<maxD;i++){
+      const v = g.dates[i]||"";
+      dts += `<td class="dt${(curV && v===curV)?' cur':''}">${v}</td>`;
+    }
+    html += `<tr class="${cls}">${dts}<td class="big">${mu}</td><td class="${wc(mw)}">${mw}</td><td class="small">${fe}</td><td class="${wc(fw)}">${fw}</td><td>${mi}</td></tr>`;
+  }
+  html += "</tbody>";
+  el("cycTable").innerHTML = html;
+}
+
+function render(){
+  const v = state.view, isCal = v==="cal";
+  // 內容區
+  el("calWrap").style.display = isCal        ? "" : "none";
+  el("cycWrap").style.display = v==="cycle" ? "" : "none";
+  // 控制項：月曆只留年份＋月份下拉（前後月鍵在月曆本體上）；一頁留篩選與「目前」
+  el("monthSel").style.display = isCal ? "" : "none";
+  el("near").style.display     = isCal ? "none" : "";
+  el("selrow").style.display   = isCal ? "none" : "";
+  el("chips").style.display    = isCal ? "none" : "";
+  if(isCal) el("monthSel").value = String(state.calMonth);
+  if(isCal) renderCal();
+  else renderCycle();
+}
+
+function gotoNear(){   // 只在一頁模式用得到（月曆模式無「目前」鈕）
+  render();
+  requestAnimationFrame(()=>{ const t=el("cycTable").querySelector("tr.cur"); if(t) t.scrollIntoView({behavior:"smooth", block:"center"}); });
+}
+
+// 依「目前」把月曆月份對齊該年份最接近今天的月份
+function alignCalMonth(){
+  const near = nearestDate(DATA[state.year]||[]);
+  if(near) state.calMonth = Number(near.split("-")[1])-1;
+}
+
+// ---- 事件綁定 ----
+el("yearSel").addEventListener("change", e=>{
+  state.year = e.target.value; state.selDate=null; alignCalMonth();
+  if(state.view==="cal") state.selDate = nearestDate(DATA[state.year]||[]);
+  render();
+});
+el("viewtabs").addEventListener("click", e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  state.view=b.dataset.v;
+  if(state.view==="cal"){ alignCalMonth(); if(!state.selDate) state.selDate = nearestDate(DATA[state.year]||[]); }
+  [...el("viewtabs").children].forEach(x=>x.classList.toggle("on", x===b));
+  render();
+});
+el("monthSel").addEventListener("change", e=>{ state.calMonth = Number(e.target.value); render(); });
+function stepMonth(delta){
+  let y=Number(state.year), m=state.calMonth+delta;
+  if(m<0){ y--; m=11; } else if(m>11){ y++; m=0; }
+  if(!DATA[String(y)]) return;   // 超出可用年份範圍
+  state.year=String(y); state.calMonth=m; state.selDate=null;
+  el("yearSel").value=state.year;
+  render();
+}
+el("calPrev").addEventListener("click", ()=>stepMonth(-1));
+el("calNext").addEventListener("click", ()=>stepMonth(1));
+el("fMulti").addEventListener("change", e=>{ state.multi=e.target.value; render(); });
+el("fFew").addEventListener("change", e=>{ state.few=e.target.value; render(); });
+el("fMini").addEventListener("change", e=>{ state.mini=e.target.value; render(); });
+el("near").addEventListener("click", gotoNear);
+el("calGrid").addEventListener("click", e=>{
+  const c=e.target.closest(".cal-cell.act"); if(!c) return;
+  state.selDate = c.dataset.date; render();
+  requestAnimationFrame(()=>{ el("calDetail").scrollIntoView({behavior:"smooth", block:"nearest"}); });
+});
+document.querySelectorAll(".chip").forEach(c=>{
+  c.addEventListener("click", ()=>{
+    const f=c.dataset.f; state[f]=!state[f]; c.classList.toggle("on", state[f]); render();
+  });
+});
+
+// ---- 初始化 ----
+fillSelect(el("fMulti"),1);
+fillSelect(el("fFew"),3);
+fillSelect(el("fMini"),5);
+// 月份下拉 1..12
+el("monthSel").innerHTML = Array.from({length:12},(_,i)=>`<option value="${i}">${i+1} 月</option>`).join("");
+// 預設年份：今天所在年份（若有資料），否則第一個
+(function(){
+  const yr = TODAY.slice(0,4);
+  if(DATA[yr]) state.year = yr;
+  el("yearSel").value = state.year;
+  alignCalMonth();
+  state.selDate = nearestDate(DATA[state.year]||[]);   // 預設選中目前活動
+})();
+render();
+</script>
+</body>
+</html>
