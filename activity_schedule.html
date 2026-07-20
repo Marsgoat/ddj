@@ -192,15 +192,32 @@ function weekday(iso){
 }
 function fmtDate(iso){ const p=iso.split("-"); return p[1]+"/"+p[2]; }
 
-// 找出「最近」的日期：>= 今天的第一筆；若整年都過了則取最後一筆
-function nearestDate(rows){
-  for(const r of rows){ if(r[0] >= TODAY) return r[0]; }
-  return rows.length ? rows[rows.length-1][0] : null;
+// 每筆資料是活動「起始日」，該活動一路持續到下一筆起始日的前一天（跨年亦連續、無空檔）。
+// 所以「目前活動」＝全表中起始日 <= 今天的最後一筆。
+// （舊寫法取「>= 今天的第一筆」，在非起始日的當天會誤指到還沒開始的下一檔活動。）
+let _CUR;
+function currentStart(){
+  if(_CUR === undefined){
+    let res = null;
+    for(const r of allSorted()){ if(r[0] <= TODAY) res = r[0]; else break; }
+    _CUR = res;                      // 今天早於所有資料時為 null
+  }
+  return _CUR;
+}
+// 目前活動不屬於檢視中的年份就不標「目前」（例如把年份切到明年）
+function currentStartIn(year){
+  const cs = currentStart();
+  return (cs && cs.slice(0,4) === year) ? cs : null;
+}
+// 預設選取：今天正在進行的活動；今天不在該年份就選該年第一檔
+function defaultSel(year){
+  const rows = DATA[year] || [];
+  return currentStartIn(year) || (rows.length ? rows[0][0] : null);
 }
 
 function distinct(idx){
-  const both = [...DATA["2026"], ...DATA["2027"]];
-  return [...new Set(both.map(r=>r[idx]))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+  const all = Object.values(DATA).flat();
+  return [...new Set(all.map(r=>r[idx]))].sort((a,b)=>a.localeCompare(b,"zh-Hant"));
 }
 function fillSelect(sel, idx, label){
   distinct(idx).forEach(v=>{
@@ -230,7 +247,6 @@ const isStartDate = (iso)=>{ const r=activeOn(iso); return !!r && r[0]===iso; };
 
 function renderCal(){
   const y = Number(state.year), m = state.calMonth;
-  const near = nearestDate(DATA[state.year] || []);
   el("calTitle").textContent = `${y} 年 ${m+1} 月`;
   el("calPrev").disabled = !(m>0 || DATA[String(y-1)]);
   el("calNext").disabled = !(m<11 || DATA[String(y+1)]);
@@ -245,7 +261,7 @@ function renderCal(){
     const iso = `${y}-${pad(m+1)}-${pad(d)}`;
     const wd = new Date(Date.UTC(y,m,d)).getUTCDay();
     const idx = activeIdx(iso);
-    if(idx<0){ cells += `<div class="cal-cell"><div class="d">${d}</div></div>`; continue; }
+    if(idx<0){ cells += `<div class="cal-cell${iso===TODAY?" today":""}"><div class="d">${d}</div></div>`; continue; }
     const r = allSorted()[idx];
     const mu=r[1], mw=r[2], start=(r[0]===iso), is50=(mw===50);
     // 色塊左右收邊：週首/週尾、月首/月尾、或隔天換新活動即收邊
@@ -261,7 +277,7 @@ function renderCal(){
       + (segLeft?`border-left:1px solid ${bcol};`:``)
       + (segRight?`border-right:1px solid ${bcol};`:``)
       + `border-radius:${rad};`;
-    const cls = ["cal-cell","act", is50?"c50":"", iso===near?"today":"", iso===state.selDate?"sel":""].filter(Boolean).join(" ");
+    const cls = ["cal-cell","act", is50?"c50":"", iso===TODAY?"today":"", iso===state.selDate?"sel":""].filter(Boolean).join(" ");
     cells += `<div class="${cls}" data-date="${iso}" style="${style}">
       <div class="d">${d}</div>
       <div class="cev" style="color:${is50?CYAN50:'#d3d9e6'}">${mu}</div>
@@ -280,8 +296,7 @@ function renderCalDetail(){
   const start = r[0];
   const ns = nextStartAfter(start);
   const end = ns ? addDays(ns,-1) : start;
-  const near = nearestDate(DATA[state.year]||[]);
-  const isNow = state.selDate>=start && state.selDate<=end && start===near;
+  const isNow = (start === currentStart());   // 這檔就是今天正在進行的活動
   const range = (start===end) ? `${fmtDate(start)}（週${weekday(start)}）`
                               : `${fmtDate(start)}–${fmtDate(end)}（週${weekday(start)}～週${weekday(end)}）`;
   box.innerHTML = `<div class="row ${mw===50?'s50':''}">
@@ -318,14 +333,13 @@ function renderCycle(){
   for(const r of rows){
     const off=cycleOffset(r[0]);
     let g=groups.get(off);
-    if(!g){ g={ev:r.slice(1), dates:[], first:r[0]}; groups.set(off,g); }
-    g.dates.push(fmtDate(r[0]));
+    if(!g){ g={ev:r.slice(1), dates:[], isos:[], first:r[0]}; groups.set(off,g); }
+    g.dates.push(fmtDate(r[0])); g.isos.push(r[0]);
   }
   const list=[...groups.values()].sort((a,b)=> a.first<b.first?-1:1);
   el("cycNote").textContent = `${state.year} 年・115 天循環一覽（共 ${list.length} 個循環位置；跨年連續，各年日期不同）`;
 
-  const near = nearestDate(DATA[state.year]||[]);
-  const curV = near ? fmtDate(near) : null;
+  const cur = currentStartIn(state.year);   // 今天不在該年份就不標「目前」
   const maxD = list.reduce((m,g)=>Math.max(m,g.dates.length),0) || 1;
   const wc = (w)=> "w" + (w>=20 && w<50 ? " w20" : "");
   let html = `<thead><tr><th colspan="${maxD}">日期</th><th>大榜</th><th>區數</th><th>小榜</th><th>區數</th><th>小遊戲</th></tr></thead><tbody>`;
@@ -334,12 +348,12 @@ function renderCycle(){
   }
   for(const g of list){
     const [mu,mw,fe,fw,mi]=g.ev;
-    const isCur = curV && g.dates.includes(curV);
+    const isCur = !!cur && g.isos.includes(cur);
     const cls = [mw===50?"s50":"", isCur?"cur":""].filter(Boolean).join(" ");
     let dts="";
     for(let i=0;i<maxD;i++){
       const v = g.dates[i]||"";
-      dts += `<td class="dt${(curV && v===curV)?' cur':''}">${v}</td>`;
+      dts += `<td class="dt${(cur && g.isos[i]===cur)?' cur':''}">${v}</td>`;
     }
     html += `<tr class="${cls}">${dts}<td class="big">${mu}</td><td class="${wc(mw)}">${mw}</td><td class="small">${fe}</td><td class="${wc(fw)}">${fw}</td><td>${mi}</td></tr>`;
   }
@@ -363,26 +377,33 @@ function render(){
 }
 
 function gotoNear(){   // 只在一頁模式用得到（月曆模式無「目前」鈕）
+  const cs = currentStart();
+  if(cs && DATA[cs.slice(0,4)] && cs.slice(0,4) !== state.year){   // 目前活動不在檢視的年份 → 先切過去
+    state.year = cs.slice(0,4); el("yearSel").value = state.year; alignCalMonth();
+  }
   render();
   requestAnimationFrame(()=>{ const t=el("cycTable").querySelector("tr.cur"); if(t) t.scrollIntoView({behavior:"smooth", block:"center"}); });
 }
 
-// 依「目前」把月曆月份對齊該年份最接近今天的月份
+// 月曆預設停在哪個月：目前活動所在月 → 今天所在月 → 該年第一檔活動所在月
 function alignCalMonth(){
-  const near = nearestDate(DATA[state.year]||[]);
-  if(near) state.calMonth = Number(near.split("-")[1])-1;
+  const cs = currentStartIn(state.year);
+  if(cs){ state.calMonth = Number(cs.slice(5,7))-1; return; }
+  if(TODAY.slice(0,4) === state.year){ state.calMonth = Number(TODAY.slice(5,7))-1; return; }
+  const rows = DATA[state.year]||[];
+  if(rows.length) state.calMonth = Number(rows[0][0].split("-")[1])-1;
 }
 
 // ---- 事件綁定 ----
 el("yearSel").addEventListener("change", e=>{
-  state.year = e.target.value; state.selDate=null; alignCalMonth();
-  if(state.view==="cal") state.selDate = nearestDate(DATA[state.year]||[]);
+  state.year = e.target.value; alignCalMonth();
+  state.selDate = state.view==="cal" ? defaultSel(state.year) : null;
   render();
 });
 el("viewtabs").addEventListener("click", e=>{
   const b=e.target.closest("button"); if(!b) return;
   state.view=b.dataset.v;
-  if(state.view==="cal"){ alignCalMonth(); if(!state.selDate) state.selDate = nearestDate(DATA[state.year]||[]); }
+  if(state.view==="cal"){ alignCalMonth(); if(!state.selDate) state.selDate = defaultSel(state.year); }
   [...el("viewtabs").children].forEach(x=>x.classList.toggle("on", x===b));
   render();
 });
@@ -420,11 +441,13 @@ fillSelect(el("fMini"),5);
 el("monthSel").innerHTML = Array.from({length:12},(_,i)=>`<option value="${i}">${i+1} 月</option>`).join("");
 // 預設年份：今天所在年份（若有資料），否則第一個
 (function(){
-  const yr = TODAY.slice(0,4);
+  // 以「目前活動」所在年份為準；沒有目前活動（今天早於資料）才退回今天的年份
+  const cs = currentStart();
+  const yr = (cs && DATA[cs.slice(0,4)]) ? cs.slice(0,4) : TODAY.slice(0,4);
   if(DATA[yr]) state.year = yr;
   el("yearSel").value = state.year;
   alignCalMonth();
-  state.selDate = nearestDate(DATA[state.year]||[]);   // 預設選中目前活動
+  state.selDate = defaultSel(state.year);   // 預設選中今天正在進行的那一檔
 })();
 render();
 </script>
